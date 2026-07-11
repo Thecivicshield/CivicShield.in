@@ -18,6 +18,8 @@ import SocialFeedSection from "./components/SocialFeedSection";
 import ImpactMetricsSection, { MetricItem } from "./components/ImpactMetricsSection";
 import JusticeShieldSection from "./components/JusticeShieldSection";
 import IntroGate from "./components/IntroGate";
+import CyberHUD from "./components/CyberHUD";
+import StrategicDeploymentMap from "./components/StrategicDeploymentMap";
 
 export default function App() {
   const [data, setData] = useState<CivicShieldData | null>(null);
@@ -76,6 +78,46 @@ export default function App() {
         setTimeout(() => {
           elementToGlitch.classList.remove("futuristic-click-active");
         }, 450);
+
+        // Spawn a gorgeous interactive scifi target lock-on under the click coordinate
+        const x = e.clientX;
+        const y = e.clientY;
+
+        const ring = document.createElement("div");
+        ring.className = "quantum-lock-ring";
+        ring.style.left = `${x}px`;
+        ring.style.top = `${y}px`;
+
+        const dot = document.createElement("div");
+        dot.className = "quantum-lock-dot";
+        dot.style.left = `${x}px`;
+        dot.style.top = `${y}px`;
+
+        const cross = document.createElement("div");
+        cross.className = "quantum-lock-cross";
+        cross.style.left = `${x}px`;
+        cross.style.top = `${y}px`;
+
+        const text = document.createElement("div");
+        text.className = "quantum-lock-text";
+        text.style.left = `${x}px`;
+        text.style.top = `${y}px`;
+        
+        const labels = ["STT_LOAD", "SYS_AUTH", "SECURE", "DUE_PROC", "SYNC_OK", "CIV_SHLD", "CAM_V2"];
+        text.innerText = labels[Math.floor(Math.random() * labels.length)];
+
+        document.body.appendChild(ring);
+        document.body.appendChild(dot);
+        document.body.appendChild(cross);
+        document.body.appendChild(text);
+
+        // Self clean up after animation cycles complete
+        setTimeout(() => {
+          ring.remove();
+          dot.remove();
+          cross.remove();
+          text.remove();
+        }, 600);
       }
     };
 
@@ -166,6 +208,7 @@ export default function App() {
       const blockList = dbData.blocks || [];
       const hasImpactMetrics = blockList.some((b: any) => b.id === "impact-metrics");
       const hasJusticeShield = blockList.some((b: any) => b.id === "justice-shield");
+      const hasDeploymentMap = blockList.some((b: any) => b.id === "deployment-map");
       
       let blocksUpdated = false;
       const updatedBlocks = [...blockList];
@@ -194,6 +237,17 @@ export default function App() {
           title: "The Justice Shield",
           visible: true,
           order: 4,
+          customData: {}
+        });
+        blocksUpdated = true;
+      }
+
+      if (!hasDeploymentMap) {
+        updatedBlocks.push({
+          id: "deployment-map",
+          title: "Strategic Deployment Map",
+          visible: true,
+          order: 5,
           customData: {}
         });
         blocksUpdated = true;
@@ -646,6 +700,8 @@ export default function App() {
           transition={{ duration: 0.6 }}
           className="min-h-screen font-sans antialiased text-gray-100 flex flex-col justify-between bg-[#001a4d]"
         >
+          {/* Futuristic Cyber HUD Overlay */}
+          <CyberHUD />
       
       {/* Header with Admin button */}
       <Header 
@@ -828,6 +884,14 @@ export default function App() {
                   onUpdateLaws={(nextLaws) => handleUpdateBlockData("justice-shield", { basicLaws: nextLaws })}
                   onUpdateMyths={(nextMyths) => handleUpdateBlockData("justice-shield", { legalMyths: nextMyths })}
                   onUpdateLibrary={(nextLibrary) => handleUpdateBlockData("justice-shield", { libraryStatutes: nextLibrary })}
+                />
+              );
+
+            case "deployment-map":
+              return (
+                <StrategicDeploymentMap
+                  key={block.id}
+                  isAdmin={isAdminMode}
                 />
               );
 

@@ -569,24 +569,24 @@ export default function IntroGate({ onEnter }: IntroGateProps) {
       {/* 7. IMMERSIVE HOLOGRAPHIC QUANTUM SHUTTER TRANSIT OVERLAY */}
       {transitActive && (
         <div className="absolute inset-0 z-[1000000] flex pointer-events-none overflow-hidden">
-          {Array.from({ length: 24 }).map((_, idx) => {
-            const delay = Math.sin(idx * 0.5) * 120 + 80; // High-tech organic sinus curve staggering
+          {Array.from({ length: 16 }).map((_, idx) => {
+            const delay = Math.sin(idx * 0.4) * 90 + 60; // Smooth golden wave staggering
             return (
               <div 
                 key={idx}
-                className="h-full cyber-drip-column bg-gradient-to-b from-[#00ffd2]/10 via-[#0055ff]/40 to-[#030712] border-r border-[#00ffcc]/10 flex flex-col justify-between py-12"
+                className="h-full cyber-drip-column bg-gradient-to-b from-[#d4af37]/5 via-[#001033]/90 to-[#020617] border-r border-[#d4af37]/5 flex flex-col justify-between py-16"
                 style={{
                   animationDelay: `${delay}ms`,
-                  boxShadow: "inset 0 0 15px rgba(0, 255, 204, 0.15)",
-                  width: `${100 / 24}%`
+                  boxShadow: "inset 0 0 12px rgba(212, 175, 55, 0.05)",
+                  width: `${100 / 16}%`
                 }}
               >
-                {/* Micro Digital Cyber Accents */}
-                <div className="text-[7px] font-mono text-[#00ffcc]/60 uppercase tracking-widest text-center writing-mode-vertical">
-                  {idx % 2 === 0 ? "SYS_SECURE" : "INTEGRITY"}
+                {/* Micro Digital Legal & Shield Accents */}
+                <div className="text-[7px] font-mono text-[#d4af37]/40 uppercase tracking-widest text-center writing-mode-vertical">
+                  {idx % 3 === 0 ? "SHIELD_SECURE" : idx % 3 === 1 ? "INTEGRITY" : "DUE_PROCESS"}
                 </div>
-                <div className="text-[6px] font-mono text-[#0055ff]/80 font-bold text-center">
-                  {(10100101 + idx * 7).toString(16).toUpperCase()}
+                <div className="text-[6px] font-mono text-[#d4af37]/30 font-semibold text-center">
+                  {(10100101 + idx * 13).toString(16).toUpperCase()}
                 </div>
               </div>
             );
