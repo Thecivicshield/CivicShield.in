@@ -366,7 +366,9 @@ export default function IntroGate({ onEnter }: IntroGateProps) {
   return (
     <div 
       ref={containerRef}
-      className="relative w-screen min-h-screen overflow-y-auto bg-black text-gray-100 font-sans select-none flex flex-col justify-between py-8 sm:py-16"
+      className={`relative w-full min-h-full bg-black text-gray-100 font-sans select-none flex flex-col justify-between py-8 sm:py-16 transition-all duration-1000 ${
+        transitActive ? "transit-cyber-active overflow-hidden" : ""
+      }`}
     >
       {/* 1. INTERACTIVE VECTOR COVENANT CANVAS BACKGROUND */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block z-0" />
@@ -564,18 +566,33 @@ export default function IntroGate({ onEnter }: IntroGateProps) {
         </div>
       </div>
 
-      {/* 7. SOVEREIGN FLASH OVERLAY */}
-      <AnimatePresence>
-        {transitActive && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100000] bg-white pointer-events-none"
-            transition={{ duration: 0.55 }}
-          />
-        )}
-      </AnimatePresence>
+      {/* 7. IMMERSIVE HOLOGRAPHIC QUANTUM SHUTTER TRANSIT OVERLAY */}
+      {transitActive && (
+        <div className="absolute inset-0 z-[1000000] flex pointer-events-none overflow-hidden">
+          {Array.from({ length: 24 }).map((_, idx) => {
+            const delay = Math.sin(idx * 0.5) * 120 + 80; // High-tech organic sinus curve staggering
+            return (
+              <div 
+                key={idx}
+                className="h-full cyber-drip-column bg-gradient-to-b from-[#00ffd2]/10 via-[#0055ff]/40 to-[#030712] border-r border-[#00ffcc]/10 flex flex-col justify-between py-12"
+                style={{
+                  animationDelay: `${delay}ms`,
+                  boxShadow: "inset 0 0 15px rgba(0, 255, 204, 0.15)",
+                  width: `${100 / 24}%`
+                }}
+              >
+                {/* Micro Digital Cyber Accents */}
+                <div className="text-[7px] font-mono text-[#00ffcc]/60 uppercase tracking-widest text-center writing-mode-vertical">
+                  {idx % 2 === 0 ? "SYS_SECURE" : "INTEGRITY"}
+                </div>
+                <div className="text-[6px] font-mono text-[#0055ff]/80 font-bold text-center">
+                  {(10100101 + idx * 7).toString(16).toUpperCase()}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

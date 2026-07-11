@@ -4,7 +4,7 @@ import {
   Users, HelpCircle, Check, FileCheck, Trash2, Mail, Sparkles, Download, Copy,
   Github, RefreshCw, LogOut, CheckCircle2, AlertTriangle, Key
 } from "lucide-react";
-import { LayoutBlock, BlogPost, AnonymousQuestion, NewsletterSub, SocialPost, SentNewsletter, NotificationLog } from "../types";
+import { LayoutBlock, BlogPost, AnonymousQuestion, NewsletterSub, SocialPost, SentNewsletter, NotificationLog, EvidenceItem } from "../types";
 
 interface AdminPanelProps {
   blocks: LayoutBlock[];
@@ -13,6 +13,7 @@ interface AdminPanelProps {
   socialPosts: SocialPost[];
   newsletters: SentNewsletter[];
   notificationLogs?: NotificationLog[];
+  evidence: EvidenceItem[];
   onSaveBlocks: (newBlocks: LayoutBlock[]) => Promise<void>;
   onAddBlogPost: (title: string, content: string, author: string, imageUrl: string) => Promise<void>;
   onUploadFile: (payload: {
@@ -30,6 +31,8 @@ interface AdminPanelProps {
   onSendNewsletter: (subject: string, badge: string, body: string) => Promise<string>;
   onAddSubscriber: (email: string) => Promise<{ success: boolean; message: string }>;
   onDeleteSubscriber: (id: string) => Promise<void>;
+  onDeleteEvidence: (id: string) => Promise<void>;
+  onUpdateEvidence: (id: string, updatedFields: Partial<EvidenceItem>) => Promise<void>;
   accentColor: string;
 }
 
@@ -40,6 +43,7 @@ export default function AdminPanel({
   socialPosts,
   newsletters,
   notificationLogs = [],
+  evidence = [],
   onSaveBlocks,
   onAddBlogPost,
   onUploadFile,
@@ -50,6 +54,8 @@ export default function AdminPanel({
   onSendNewsletter,
   onAddSubscriber,
   onDeleteSubscriber,
+  onDeleteEvidence,
+  onUpdateEvidence,
   accentColor
 }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<'layout' | 'upload' | 'blog' | 'qna' | 'social' | 'newsletters' | 'subs' | 'mails' | 'backup'>('layout');
@@ -89,6 +95,7 @@ export default function AdminPanel({
   const [uploadLinkUrl, setUploadLinkUrl] = useState("");
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingEvidenceId, setEditingEvidenceId] = useState<string | null>(null);
 
   // Q&A reply states
   const [replies, setReplies] = useState<{ [qId: string]: string }>({});
@@ -429,6 +436,44 @@ export default function AdminPanel({
     reader.readAsDataURL(selectedFile);
   };
 
+  // Handle saving edited evidence
+  const handleSaveEditedEvidence = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEvidenceId) return;
+    setIsUploading(true);
+    setUploadStatus("Saving changes to index...");
+    try {
+      const fields: Partial<EvidenceItem> = {
+        title: uploadTitle,
+        description: uploadDesc,
+        verifiedBy: uploadVerified,
+        type: uploadType,
+      };
+      if (uploadMethod === 'link') {
+        fields.fileUrl = uploadLinkUrl;
+        fields.fileName = uploadLinkUrl;
+      }
+      await onUpdateEvidence(editingEvidenceId, fields);
+      setUploadStatus("Locker item successfully updated!");
+      setEditingEvidenceId(null);
+      setUploadTitle("");
+      setUploadDesc("");
+      setUploadLinkUrl("");
+      setTimeout(() => setUploadStatus(null), 4000);
+    } catch (err: any) {
+      setUploadStatus("Failed to update item: " + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCancelEditEvidence = () => {
+    setEditingEvidenceId(null);
+    setUploadTitle("");
+    setUploadDesc("");
+    setUploadLinkUrl("");
+  };
+
   // Answer anonymous question
   const handleSendAnswer = async (qId: string, isPublic: boolean) => {
     const textReply = replies[qId];
@@ -649,134 +694,236 @@ export default function AdminPanel({
 
       {/* 2. File Upload Locker */}
       {activeTab === 'upload' && (
-        <form onSubmit={handleUploadItem} className="space-y-4 max-w-xl animate-in fade-in duration-200">
-          <div className="p-4 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-sm space-y-1">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#d4af37] flex items-center gap-1.5 leading-none">
-              <FileUp className="w-4 h-4" /> Defense Resource Upload Locker
-            </h4>
-            <p className="text-[11px] text-gray-300 leading-relaxed font-sans font-light">
-              Add verified files or external resources directly to the legal index. Videos can be linked directly from YouTube/Vimeo to fit within device stream requirements cleanly.
-            </p>
-          </div>
-
-          <div className="flex select-none border border-[#d4af37]/35 p-1 rounded-sm bg-[#001a4d]/60">
-            <button
-              type="button"
-              onClick={() => setUploadMethod('file')}
-              className={`flex-1 text-center py-2 text-[10px] uppercase font-mono font-bold tracking-wider rounded-sm transition-all cursor-pointer ${
-                uploadMethod === 'file'
-                  ? 'bg-[#d4af37] text-[#001a4d]'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Local File Upload (PDF / Video)
-            </button>
-            <button
-              type="button"
-              onClick={() => setUploadMethod('link')}
-              className={`flex-1 text-center py-2 text-[10px] uppercase font-mono font-bold tracking-wider rounded-sm transition-all cursor-pointer ${
-                uploadMethod === 'link'
-                  ? 'bg-[#d4af37] text-[#001a4d]'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              External Hyperlink / Video URL
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Resource Title</label>
-              <input
-                type="text"
-                required
-                value={uploadTitle}
-                onChange={(e) => setUploadTitle(e.target.value)}
-                placeholder="E.g., self-representation handbook"
-                className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-600 font-sans"
-              />
+        <div className="space-y-6 max-w-2xl animate-in fade-in duration-200">
+          <form 
+            onSubmit={editingEvidenceId ? handleSaveEditedEvidence : handleUploadItem} 
+            className="space-y-4"
+          >
+            <div className="p-4 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-sm space-y-1">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#d4af37] flex items-center gap-1.5 leading-none">
+                <FileUp className="w-4 h-4" /> 
+                {editingEvidenceId ? "🔧 Edit Indexed Resource" : "Defense Resource Upload Locker"}
+              </h4>
+              <p className="text-[11px] text-gray-300 leading-relaxed font-sans font-light">
+                {editingEvidenceId 
+                  ? "Modify the active metadata parameters or target URL of this indexed legal asset."
+                  : "Add verified files or external resources directly to the legal index. Videos can be linked directly from YouTube/Vimeo to fit within device stream requirements cleanly."}
+              </p>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Verified Signature Agency</label>
-              <input
-                type="text"
-                required
-                value={uploadVerified}
-                onChange={(e) => setUploadVerified(e.target.value)}
-                placeholder="E.g., Civic Shield Legal Alliance"
-                className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-650 font-sans"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Detailed Description</label>
-            <textarea
-              required
-              rows={3}
-              value={uploadDesc}
-              onChange={(e) => setUploadDesc(e.target.value)}
-              placeholder="Provide a compelling descriptive baseline context for this asset..."
-              className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-655 font-sans"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Category override</label>
-              <select
-                value={uploadType}
-                onChange={(e: any) => setUploadType(e.target.value)}
-                className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white font-sans"
+            <div className="flex select-none border border-[#d4af37]/35 p-1 rounded-sm bg-[#001a4d]/60">
+              <button
+                type="button"
+                disabled={!!editingEvidenceId}
+                onClick={() => setUploadMethod('file')}
+                className={`flex-1 text-center py-2 text-[10px] uppercase font-mono font-bold tracking-wider rounded-sm transition-all cursor-pointer disabled:opacity-50 ${
+                  uploadMethod === 'file'
+                    ? 'bg-[#d4af37] text-[#001a4d]'
+                    : 'text-gray-400 hover:text-white'
+                }`}
               >
-                <option value="pdf">Document (PDF)</option>
-                <option value="video">Construction Log (MP4 / YouTube Video)</option>
-                <option value="spreadsheet">Financial Sheet (XLS/CSV)</option>
-                <option value="image">Violation Photograph (JPG/PNG)</option>
-              </select>
+                Local File Upload (PDF / Video)
+              </button>
+              <button
+                type="button"
+                onClick={() => setUploadMethod('link')}
+                className={`flex-1 text-center py-2 text-[10px] uppercase font-mono font-bold tracking-wider rounded-sm transition-all cursor-pointer ${
+                  uploadMethod === 'link'
+                    ? 'bg-[#d4af37] text-[#001a4d]'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                External Hyperlink / Video URL
+              </button>
             </div>
 
-            {uploadMethod === 'file' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Select File Stream</label>
+                <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Resource Title</label>
                 <input
-                  type="file"
+                  type="text"
                   required
-                  onChange={handleFileChange}
-                  className="w-full bg-[#001a4d] border border-[#d4af37]/20 focus:outline-none text-xs text-gray-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-[10px] file:uppercase file:font-semibold file:bg-[#d4af37]/20 file:text-[#d4af37] file:hover:bg-[#d4af37]/35 file:cursor-pointer"
-                />
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Resource URL / Video Link</label>
-                <input
-                  type="url"
-                  required
-                  value={uploadLinkUrl}
-                  onChange={(e) => setUploadLinkUrl(e.target.value)}
-                  placeholder="E.g., https://www.youtube.com/watch?v=..."
+                  value={uploadTitle}
+                  onChange={(e) => setUploadTitle(e.target.value)}
+                  placeholder="E.g., self-representation handbook"
                   className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-600 font-sans"
                 />
               </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Verified Signature Agency</label>
+                <input
+                  type="text"
+                  required
+                  value={uploadVerified}
+                  onChange={(e) => setUploadVerified(e.target.value)}
+                  placeholder="E.g., Civic Shield Legal Alliance"
+                  className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-650 font-sans"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Detailed Description</label>
+              <textarea
+                required
+                rows={3}
+                value={uploadDesc}
+                onChange={(e) => setUploadDesc(e.target.value)}
+                placeholder="Provide a compelling descriptive baseline context for this asset..."
+                className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-655 font-sans"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Category override</label>
+                <select
+                  value={uploadType}
+                  onChange={(e: any) => setUploadType(e.target.value)}
+                  className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white font-sans"
+                >
+                  <option value="pdf">Document (PDF)</option>
+                  <option value="video">Construction Log (MP4 / YouTube Video)</option>
+                  <option value="spreadsheet">Financial Sheet (XLS/CSV)</option>
+                  <option value="image">Violation Photograph (JPG/PNG)</option>
+                </select>
+              </div>
+
+              {uploadMethod === 'file' ? (
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Select File Stream</label>
+                  <input
+                    type="file"
+                    required={!editingEvidenceId}
+                    onChange={handleFileChange}
+                    className="w-full bg-[#001a4d] border border-[#d4af37]/20 focus:outline-none text-xs text-gray-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-[10px] file:uppercase file:font-semibold file:bg-[#d4af37]/20 file:text-[#d4af37] file:hover:bg-[#d4af37]/35 file:cursor-pointer"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-mono tracking-wider text-gray-400">Resource URL / Video Link</label>
+                  <input
+                    type="url"
+                    required
+                    value={uploadLinkUrl}
+                    onChange={(e) => setUploadLinkUrl(e.target.value)}
+                    placeholder="E.g., https://www.youtube.com/watch?v=..."
+                    className="w-full bg-[#001a4d] border border-[#d4af37]/25 focus:border-[#d4af37] focus:outline-none text-xs rounded-sm px-3 py-2 text-white placeholder-gray-600 font-sans"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={isUploading || (!editingEvidenceId && (uploadMethod === 'file' ? !selectedFile : !uploadLinkUrl))}
+                className="flex-1 px-5 py-2.5 bg-[#d4af37] hover:bg-[#c39e2e] disabled:bg-[#002366] text-[#001a4d] font-bold text-xs tracking-wider uppercase rounded-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <FileCheck className="w-4 h-4" />
+                <span>
+                  {isUploading 
+                    ? "Processing..." 
+                    : (editingEvidenceId 
+                        ? "Save Item Changes" 
+                        : (uploadMethod === 'file' ? "Upload & Index Evidence Material" : "Index Link Resource")
+                      )
+                  }
+                </span>
+              </button>
+              
+              {editingEvidenceId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEditEvidence}
+                  className="px-5 py-2.5 bg-gray-800 hover:bg-gray-750 text-white font-bold text-xs tracking-wider uppercase rounded-sm transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+
+            {uploadStatus && (
+              <p className="text-xs font-semibold text-[#d4af37] bg-[#d4af37]/5 px-3 py-2 rounded-sm border border-[#d4af37]/25 animate-pulse">
+                {uploadStatus}
+              </p>
             )}
+          </form>
+
+          {/* Evidence Registry Management list */}
+          <div className="mt-8 border-t border-[#d4af37]/15 pt-6 space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#d4af37]">
+              Current Indexed Evidence & Files ({evidence.length})
+            </h4>
+            
+            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+              {evidence.length === 0 ? (
+                <p className="text-xs text-gray-500 italic">No files or links indexed yet in the database.</p>
+              ) : (
+                evidence.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#001233]/90 border border-[#d4af37]/15 rounded-sm hover:border-[#d4af37]/35 transition-colors"
+                  >
+                    <div className="space-y-1 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-mono bg-[#d4af37]/10 text-[#d4af37] px-2 py-0.5 rounded-sm uppercase font-semibold">
+                          {item.type}
+                        </span>
+                        <a 
+                          href={item.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-xs font-bold text-white hover:text-[#d4af37] hover:underline"
+                        >
+                          {item.title}
+                        </a>
+                      </div>
+                      <p className="text-[10px] text-gray-400 font-sans max-w-md line-clamp-1">
+                        {item.description}
+                      </p>
+                      <div className="flex gap-4 text-[9px] font-mono text-gray-500">
+                        <span>Verified: {item.verifiedBy}</span>
+                        {item.fileSize && <span>Size: {item.fileSize}</span>}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEvidenceId(item.id);
+                          setUploadTitle(item.title);
+                          setUploadDesc(item.description);
+                          setUploadVerified(item.verifiedBy || "Campaign Lead");
+                          setUploadType(item.type as any);
+                          setUploadMethod(item.fileUrl.startsWith("http") ? "link" : "file");
+                          setUploadLinkUrl(item.fileUrl);
+                        }}
+                        className="px-2.5 py-1 text-[9px] uppercase font-mono font-bold bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/30 rounded-sm hover:bg-[#d4af37]/45 cursor-pointer transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete "${item.title}"?`)) {
+                            onDeleteEvidence(item.id);
+                          }
+                        }}
+                        className="p-1.5 text-red-400 hover:text-white hover:bg-red-950/40 border border-red-500/15 rounded-sm transition-all cursor-pointer"
+                        title="Delete resource"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={isUploading || (uploadMethod === 'file' ? !selectedFile : !uploadLinkUrl)}
-            className="px-5 py-2.5 bg-[#d4af37] hover:bg-[#c39e2e] disabled:bg-[#002366] text-[#001a4d] font-bold text-xs tracking-wider uppercase rounded-sm transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <FileCheck className="w-4 h-4" />
-            <span>{isUploading ? "Indexing streams..." : (uploadMethod === 'file' ? "Upload & Index Evidence Material" : "Index Link Resource")}</span>
-          </button>
-
-          {uploadStatus && (
-            <p className="text-xs font-semibold text-[#d4af37] bg-[#d4af37]/5 px-3 py-2 rounded-sm border border-[#d4af37]/25 animate-pulse">
-              {uploadStatus}
-            </p>
-          )}
-        </form>
+        </div>
       )}
 
       {/* 3. Blog Publisher */}

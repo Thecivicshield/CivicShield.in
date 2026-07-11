@@ -324,9 +324,9 @@ export default function JusticeShieldSection({
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem("civic_shield_pinned_statutes");
-      return stored ? JSON.parse(stored) : [];
+      return stored ? JSON.parse(stored) : ["statute-art21", "statute-art19"];
     } catch {
-      return [];
+      return ["statute-art21", "statute-art19"];
     }
   });
 

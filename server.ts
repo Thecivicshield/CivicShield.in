@@ -527,6 +527,26 @@ app.delete("/api/evidence/:id", (req, res) => {
   }
 });
 
+// Update evidence entry
+app.post("/api/update-evidence", (req, res) => {
+  try {
+    const { id, updatedFields } = req.body;
+    if (!id || !updatedFields) {
+      return res.status(400).json({ error: "Missing ID or updatedFields." });
+    }
+    campaignData.evidence = campaignData.evidence.map((ev) => {
+      if (ev.id === id) {
+        return { ...ev, ...updatedFields };
+      }
+      return ev;
+    });
+    saveData(campaignData);
+    res.json({ success: true, message: "Evidence dossier updated." });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Newsletter subscription
 app.post("/api/subscribe", (req, res) => {
   try {

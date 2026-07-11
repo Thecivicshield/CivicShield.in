@@ -42,20 +42,48 @@ export default function App() {
   });
 
   const handleEnterWebsite = (sectionId?: string) => {
-    setShowIntro(false);
-    try {
-      sessionStorage.setItem("civic_shield_intro_passed", "true");
-    } catch (e) {}
+    // Delay unmounting the intro gate by 1200ms to allow the immersive golden liquid melt curtain animation to finish
+    setTimeout(() => {
+      setShowIntro(false);
+      try {
+        sessionStorage.setItem("civic_shield_intro_passed", "true");
+      } catch (e) {}
 
-    if (sectionId) {
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 250);
-    }
+      if (sectionId) {
+        setTimeout(() => {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 250);
+      }
+    }, 1200);
   };
+
+  // Global click interceptor to animate a futuristic quantum cyber glitch scanline whenever something is selected/clicked
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      // Match closest button, link, selectable items, or list cards
+      const elementToGlitch = target.closest("button, a, [role='button'], .selectable-melt, .tab-item, .statute-card");
+      if (elementToGlitch && !elementToGlitch.classList.contains("futuristic-click-active")) {
+        // Apply the custom cyber glitch & scanline sweep animation
+        elementToGlitch.classList.add("futuristic-click-active");
+        
+        // Remove after animation completes (450ms) so it is ready for subsequent selections
+        setTimeout(() => {
+          elementToGlitch.classList.remove("futuristic-click-active");
+        }, 450);
+      }
+    };
+
+    window.addEventListener("click", handleGlobalClick);
+    return () => {
+      window.removeEventListener("click", handleGlobalClick);
+    };
+  }, []);
 
   // Sync admin mode to localStorage
   useEffect(() => {
@@ -387,6 +415,27 @@ export default function App() {
     }
   };
 
+  // Update Evidence entry
+  const handleUpdateEvidence = async (id: string, updatedFields: Partial<EvidenceItem>) => {
+    if (!data) return;
+    try {
+      const res = await fetch("/api/update-evidence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, updatedFields })
+      });
+      if (!res.ok) throw new Error("Could not save updated evidence list entry");
+
+      setData({
+        ...data,
+        evidence: data.evidence.map(ev => ev.id === id ? { ...ev, ...updatedFields } : ev)
+      });
+    } catch (err: any) {
+      console.error(err);
+      setErrorNotice(err.message);
+    }
+  };
+
   // Subscribe subscriber email
   const handleSubscribe = async (email: string) => {
     const res = await fetch("/api/subscribe", {
@@ -585,7 +634,7 @@ export default function App() {
           key="intro-gate"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, y: -20, transition: { duration: 0.5, ease: "easeInOut" } }}
-          className="fixed inset-0 z-[10000]"
+          className="fixed inset-0 z-[10000] overflow-y-auto bg-black"
         >
           <IntroGate onEnter={handleEnterWebsite} />
         </motion.div>
@@ -633,6 +682,7 @@ export default function App() {
               socialPosts={data?.socialFeed || []}
               newsletters={data?.newsletters || []}
               notificationLogs={data?.notificationLogs || []}
+              evidence={data?.evidence || []}
               onSaveBlocks={handleSaveBlocks}
               onAddBlogPost={handleAddBlogPost}
               onUploadFile={handleUploadFile}
@@ -643,6 +693,8 @@ export default function App() {
               onSendNewsletter={handleSendNewsletter}
               onAddSubscriber={handleSubscribe}
               onDeleteSubscriber={handleDeleteSubscriber}
+              onDeleteEvidence={handleDeleteEvidence}
+              onUpdateEvidence={handleUpdateEvidence}
               accentColor={accentColor}
             />
           </div>
@@ -891,6 +943,28 @@ export default function App() {
           />
         </motion.div>
       )}
+
+      {/* GLOBAL SVG DISPLACEMENT FILTERS FOR LIQUID MELTING EFFECT */}
+      <svg className="fixed w-0 h-0 pointer-events-none" style={{ position: "absolute", width: 0, height: 0 }} aria-hidden="true">
+        <defs>
+          <filter id="melt-filter-mild">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.05" numOctaves="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <filter id="melt-filter-medium">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02 0.08" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="28" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <filter id="melt-filter-heavy">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.12" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="55" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <filter id="melt-filter-extreme">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.18" numOctaves="4" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="110" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
     </AnimatePresence>
   );
 }
