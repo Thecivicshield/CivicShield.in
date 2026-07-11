@@ -1,0 +1,290 @@
+{
+  "blocks": [
+    {
+      "id": "hero",
+      "title": "Hero Searchlight",
+      "visible": true,
+      "order": 1,
+      "customData": {
+        "heroTitle": "CIVIC SHIELD",
+        "heroSubtitle": "Bridging the gap between citizens and legal authority. We eliminate fear, advocate for legal literacy, and empower you with knowledge of basic laws so you can protect yourself and your family with confidence.",
+        "heroAlertText": "ALERT: Our upcoming virtual 'Know-Your-Rights Procedural Clinic' is scheduled for June 28th. Reserve your free handbook below.",
+        "primaryColor": "#0F264A",
+        "accentColor": "#D4AF37"
+      }
+    },
+    {
+      "id": "pillars",
+      "title": "Campaign Core Pillars",
+      "visible": true,
+      "order": 2,
+      "customData": {
+        "pillars": [
+          {
+            "title": "Bridge the Gap",
+            "description": "Fostering mutual dialogue and professional compliance training to bridge the hostile divide between citizens and authority figures.",
+            "iconName": "Scale"
+          },
+          {
+            "title": "Eliminate Fear",
+            "description": "Taking the fear out of legal actions of police, code officers, and landlords by equipping you with simple, verified legal definitions.",
+            "iconName": "ShieldAlert"
+          },
+          {
+            "title": "Citizen Advocacy",
+            "description": "Providing easy-to-use self-defense template vaults so you can represent your interests with institutional competence.",
+            "iconName": "Landmark"
+          },
+          {
+            "title": "Civic Transparency",
+            "description": "Independently cataloging government mandates, public spending budgets, and asset records to ensure permanent institutional transparency and open citizen auditing.",
+            "iconName": "Eye"
+          }
+        ]
+      }
+    },
+    {
+      "id": "evidence",
+      "title": "Legal Library & Handouts",
+      "visible": true,
+      "order": 3,
+      "customData": {
+        "accentColor": "#D4AF37"
+      }
+    },
+    {
+      "id": "timeline",
+      "title": "Campaign Roadmap",
+      "visible": true,
+      "order": 4,
+      "customData": {
+        "timeline": [
+          {
+            "date": "May 10, 2026",
+            "title": "Digital Curriculum Drafted",
+            "description": "Released our 6-segment citizen syllabus covering fundamental civil liberties and constitutional interaction protocols.",
+            "completed": true
+          },
+          {
+            "date": "June 1, 2026",
+            "title": "Locker Vault Release",
+            "description": "Uploaded the Pro-Se Administrative Response template pack to help people represent themselves in local hearings.",
+            "completed": true
+          },
+          {
+            "date": "June 28, 2026",
+            "title": "National Know-Your-Rights Webinar",
+            "description": "Host a nationwide mock interaction call covering safe legal triggers, consent boundaries, and detainment thresholds.",
+            "completed": false
+          },
+          {
+            "date": "July 20, 2026",
+            "title": "Municipal Authority Exchange",
+            "description": "First collaborative workshop linking civic council, defense lawyers, and municipal officials to set transparent procedural benchmarks.",
+            "completed": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "impact-metrics",
+      "title": "Impact Metrics Chart",
+      "visible": true,
+      "order": 5,
+      "customData": {
+        "metrics": [
+          {
+            "label": "Supporters Recruited",
+            "value": 340
+          },
+          {
+            "label": "Students Engaged",
+            "value": 1250
+          },
+          {
+            "label": "Guides Distributed",
+            "value": 850
+          },
+          {
+            "label": "Campus Workshops",
+            "value": 18
+          }
+        ]
+      }
+    },
+    {
+      "id": "justice-shield",
+      "title": "The Justice Shield",
+      "visible": true,
+      "order": 6,
+      "customData": {}
+    },
+    {
+      "id": "social-feed",
+      "title": "Campaign Social Stream",
+      "visible": true,
+      "order": 7,
+      "customData": {}
+    },
+    {
+      "id": "blog",
+      "title": "Latest Insights & Guides",
+      "visible": true,
+      "order": 8,
+      "customData": {}
+    },
+    {
+      "id": "newsletter",
+      "title": "Civic Messenger Registration",
+      "visible": true,
+      "order": 9,
+      "customData": {}
+    }
+  ],
+  "posts": [
+    {
+      "id": "post_1",
+      "title": "How to Dissolve Detainment Fear Using Three Essential Questions",
+      "content": "When interacting with any legal authority, fear usually stems from not knowing what comes next. By asking three simple, calm, and progressive questions, you completely clear up the scenario:\n\n1. 'Am I being detained, officer, or am I free to go?' If they answer that you are not detained, you are legally free to calmly walk away. If you are detained, they must possess a reasonable articulable suspicion.\n\n2. 'What is the specific reasonable suspicion for my detainment?' This forces a professional, verbal record of their grounds.\n\n3. 'Am I required by law to provide identity under this specific detainment?' This clarifies if your local code makes refusal to identify a secondary infraction during active stop-and-frisks.\n\nBy keeping dialogue objective, you eliminate panic, document facts, and secure critical protections immediately.",
+      "date": "2026-06-12",
+      "author": "Marcus Thorne, Senior Counsel",
+      "imageUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1200",
+      "comments": [
+        {
+          "id": "c1",
+          "author": "Elena Rostova",
+          "text": "This basic checklist saved me so much stress yesterday during a municipal inspection inquiry. Thank you Marcus!",
+          "date": "2026-06-12"
+        }
+      ]
+    },
+    {
+      "id": "post_2",
+      "title": "Party-in-Person Rights: You Do Not Need to Afford an Attorney to Stand Tall",
+      "content": "Many citizens give up their statutory rights simply because they cannot afford steep advocate fees. However, representing oneself as a 'Party-in-Person' is a recognized legal option under Indian law and international human rights conventions.\n\nInside our Evidence locker, we have assembled standardized response templates for municipal corporation inquiries, RTI drafts, and basic magistrate court drafts. In this dispatch, we walk you through standard registry submission etiquette - covering how to stamp, index, and properly serve your replies to local bodies. Stand tall and represent with confidence.",
+      "date": "2026-06-10",
+      "author": "Aditya Sen, Senior Advocate",
+      "imageUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200",
+      "comments": []
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev_1",
+      "title": "Traffic Interaction & Motor Vehicles Act Handbook",
+      "description": "A pocket-sized breakdown of your exact constitutional rights, police questioning limits, and compliance requirements under the Indian Motor Vehicles Act.",
+      "type": "pdf",
+      "fileName": "Traffic_Interactions_Civilian_Guide.pdf",
+      "fileUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "uploadedAt": "2026-06-11",
+      "fileSize": "1.15 MB",
+      "verifiedBy": "Civic Shield Advocacy Inst."
+    },
+    {
+      "id": "ev_2",
+      "title": "Party-in-Person & RTI Draft Templates",
+      "description": "Standard boilerplate layouts for composing clear, professional RTI requests, municipal show-cause replies, or rental agreement objections.",
+      "type": "spreadsheet",
+      "fileName": "PartyInPerson_RTI_Templates.xlsx",
+      "fileUrl": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      "uploadedAt": "2026-06-09",
+      "fileSize": "2.40 MB",
+      "verifiedBy": "Legal Literacy Board"
+    },
+    {
+      "id": "ev_3",
+      "title": "Procedural De-escalation Compliance Brief",
+      "description": "Video instruction detailing how to record interactions clearly, remain respectful, and secure your rights without escalating tension.",
+      "type": "video",
+      "fileName": "Interaction_Protocol_Deescalate.mp4",
+      "fileUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "uploadedAt": "2026-06-05",
+      "fileSize": "11.2 MB",
+      "verifiedBy": "National De-escalation League"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q_1",
+      "text": "What is the difference between a police inquiry and a formal detainment?",
+      "timestamp": "2026-06-12 14:15",
+      "answered": true,
+      "answer": "An inquiry is completely voluntary. You are under no obligation to stand or answer questions, and you may walk away. Detainment, however, is a temporary seizure where you must comply but do not have to confess or supply unrequired info beyond identification. Always ask: 'Am I free to go?' to establish this boundary.",
+      "isPublic": true,
+      "repliedBy": "Campaign Manager"
+    },
+    {
+      "id": "q_2",
+      "text": "How can I assert my right to record public officers in public spaces?",
+      "timestamp": "2026-06-13 09:20",
+      "answered": true,
+      "answer": "You have a clearly protected right under constitutional case law to visually record officers working in public view. Ensure you remain at a non-interference distance, do not physically obstruct their workspace, and state calmly: 'I am standing back and documenting this for legal transparency.'",
+      "isPublic": true,
+      "repliedBy": "AI Campaign Advocate"
+    }
+  ],
+  "subscribers": [
+    {
+      "id": "sub_1",
+      "email": "thecivicshield@gmail.com",
+      "subscribedAt": "2026-06-13 04:28"
+    }
+  ],
+  "socialFeed": [
+    {
+      "id": "soc_3",
+      "platform": "twitter",
+      "username": "Civic Shield Campaign",
+      "handle": "@TheCivicShield",
+      "content": "⚠️ Know your basic words! If an administrative officer starts questioning you in public, calmly ask: 'Am I being detained, or am I free to go?'\n\nIf free, you can walk away. If detained, you are protected from random interrogations. Knowledge bridges the gap! ⚖️ #LegalLiteracy #CivicShield",
+      "timestamp": "1 hour ago",
+      "likes": 142,
+      "shares": 56,
+      "comments": 12
+    },
+    {
+      "id": "soc_2",
+      "platform": "instagram",
+      "username": "Civic Shield",
+      "handle": "@thecivicshield",
+      "content": "Our central mission is bridging the critical gap between citizens and legal authority. Reciprocal respect can only emerge when citizens know their basic rights and authorities respect procedural boundaries. \n\nWe eliminate fear by teaching you basic laws. Click our link in bio to download our Free compliance and de-escalation toolkit PDFs! 📚🛡️",
+      "imageUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
+      "timestamp": "4 hours ago",
+      "likes": 289,
+      "shares": 89,
+      "comments": 24
+    },
+    {
+      "id": "soc_1",
+      "platform": "linkedin",
+      "username": "Civic Shield Foundation",
+      "handle": "linkedin.com/company/civicshield",
+      "content": "Did you know? Representing yourself as a 'Party-in-Person' under Indian and international law is a well-established right. However, drafting official responses or filing RTI requests can feel incredibly scary.\n\nTo make this easy, we've uploaded clean, standardized boilerplate templates for answers, RTI requests, and municipal appeals directly to our online Evidence Room. Learn how to speak the institutional language. 📚🛡️",
+      "timestamp": "1 day ago",
+      "likes": 195,
+      "shares": 72,
+      "comments": 15
+    },
+    {
+      "id": "soc_youtube_1",
+      "platform": "youtube",
+      "username": "Civic Shield Channel",
+      "handle": "youtube.com/@civicshield",
+      "content": "📺 NEW VIDEO RELEASE: Walking through an active police detainment step-by-step. Discover how to politely resist unconstitutional searches while remaining fully compliant with officers' safe verbal requests. Watch the full simulation on our channel and learn how to guard your legal rights easily!",
+      "timestamp": "2 days ago",
+      "likes": 412,
+      "shares": 155,
+      "comments": 48
+    }
+  ],
+  "newsletters": [
+    {
+      "id": "news_1",
+      "subject": "Launching the Civic Shield Legal Literacy Vault!",
+      "badge": "Campaign Launch",
+      "body": "Dear Supporters,\n\nWe are absolutely thrilled to broadcast our very first Civic Shield digital archive dispatch! Our absolute aim is to bridge the hostile communication gap between our citizens and municipal authorial forces.\n\nInside our public evidence drawer, you will find our newly compiled civilian guide to police encounters, along with court boilerplate filing indexes. Please share these with family, neighbors, and colleagues. We eliminate fear with pure knowledge.\n\nIn solidarity,\nThe Civic Shield Coordinator Team",
+      "sentAt": "2026-06-13 11:20",
+      "recipientCount": 1
+    }
+  ]
+}

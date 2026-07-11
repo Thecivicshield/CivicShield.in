@@ -1,0 +1,6 @@
+{
+  "name": "Civic Shield",
+  "description": "An elegant, customizable campaigning platform for civic justice and transparency, featuring a drag-and-drop layout editor, evidence room, blog, newsletter subscription, and anonymous chat feedback with Gemini Q&A.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
