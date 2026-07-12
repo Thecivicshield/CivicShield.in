@@ -24,6 +24,8 @@ import CustomCursor from "./components/CustomCursor";
 import AestheticBackground from "./components/AestheticBackground";
 import PremiumButton from "./components/PremiumButton";
 import ScrollReveal from "./components/ScrollReveal";
+import AchievementToast from "./components/AchievementToast";
+import LawBlueprint from "./components/LawBlueprint";
 
 export default function App() {
   const [data, setData] = useState<CivicShieldData | null>(null);
@@ -862,16 +864,18 @@ export default function App() {
 
             case "justice-shield":
               return (
-                <JusticeShieldSection
-                  key={block.id}
-                  isAdmin={isAdminMode}
-                  basicLaws={block.customData.basicLaws}
-                  legalMyths={block.customData.legalMyths}
-                  libraryStatutes={block.customData.libraryStatutes}
-                  onUpdateLaws={(nextLaws) => handleUpdateBlockData("justice-shield", { basicLaws: nextLaws })}
-                  onUpdateMyths={(nextMyths) => handleUpdateBlockData("justice-shield", { legalMyths: nextMyths })}
-                  onUpdateLibrary={(nextLibrary) => handleUpdateBlockData("justice-shield", { libraryStatutes: nextLibrary })}
-                />
+                <React.Fragment key={block.id}>
+                  <JusticeShieldSection
+                    isAdmin={isAdminMode}
+                    basicLaws={block.customData.basicLaws}
+                    legalMyths={block.customData.legalMyths}
+                    libraryStatutes={block.customData.libraryStatutes}
+                    onUpdateLaws={(nextLaws) => handleUpdateBlockData("justice-shield", { basicLaws: nextLaws })}
+                    onUpdateMyths={(nextMyths) => handleUpdateBlockData("justice-shield", { legalMyths: nextMyths })}
+                    onUpdateLibrary={(nextLibrary) => handleUpdateBlockData("justice-shield", { libraryStatutes: nextLibrary })}
+                  />
+                  <LawBlueprint />
+                </React.Fragment>
               );
 
             case "evidence":
@@ -1008,6 +1012,9 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+          {/* ACHIEVEMENT TOAST SYSTEM */}
+          <AchievementToast />
 
           {/* FLOATING CHAT SYSTEM BOTTOM-RIGHT */}
           <AnonymousChat 

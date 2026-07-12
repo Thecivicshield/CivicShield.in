@@ -1458,7 +1458,19 @@ export default function JusticeShieldSection({
                           <motion.button
                             key="reveal-btn"
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => setRevealedQuiz(p => ({ ...p, [idx]: true }))}
+                            onClick={() => {
+                              setRevealedQuiz(p => ({ ...p, [idx]: true }));
+                              try {
+                                window.dispatchEvent(new CustomEvent("unlock-achievement", {
+                                  detail: {
+                                    id: "myth-busted",
+                                    title: "Legal Myth Busted",
+                                    description: "You exposed a common administrative misconception and unlocked the statutory truth.",
+                                    category: "myth"
+                                  }
+                                }));
+                              } catch (e) {}
+                            }}
                             className="w-full text-center py-2 bg-[#d4af37]/10 hover:bg-[#d4af37]/25 text-[#d4af37] text-[10px] uppercase font-mono font-bold rounded-sm border border-[#d4af37]/20 transition-all cursor-pointer"
                           >
                             Expose Legal Reality

@@ -326,6 +326,21 @@ export default function IntroGate({ onEnter }: IntroGateProps) {
 
   const triggerTransitEnter = (stationId?: string) => {
     setTransitActive(true);
+    
+    // Dispatch achievement for entering the civic shield portal
+    try {
+      window.dispatchEvent(new CustomEvent("unlock-achievement", {
+        detail: {
+          id: "civic-explorer",
+          title: "Sovereign Explorer",
+          description: "You bypassed administrative gatekeeping and entered the Civic Shield.",
+          category: "explore"
+        }
+      }));
+    } catch (e) {
+      console.warn("Achievement trigger error:", e);
+    }
+
     // Give time for sovereign flash of justice before sliding viewport
     setTimeout(() => {
       onEnter(stationId);

@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { GoogleGenAI } from "@google/genai";
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore";
+import { initializeFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore";
 import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog } from "./src/types";
 
 const app = express();
@@ -330,8 +330,10 @@ try {
     measurementId: firebaseConfig.measurementId
   });
 
-  firestore = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
-  console.log("Firestore client SDK successfully initialized on database: " + (firebaseConfig.firestoreDatabaseId || "(default)"));
+  firestore = initializeFirestore(firebaseApp, {
+    experimentalForceLongPolling: true
+  }, firebaseConfig.firestoreDatabaseId);
+  console.log("Firestore client SDK successfully initialized on database (Long Polling): " + (firebaseConfig.firestoreDatabaseId || "(default)"));
 } catch (error) {
   console.error("Failed to initialize Firebase / Firestore via client SDK:", error);
 }
