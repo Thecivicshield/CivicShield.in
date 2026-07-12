@@ -2,8 +2,8 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { GoogleGenAI } from "@google/genai";
-import { initializeApp } from "firebase-admin/app";
-import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore";
 import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog } from "./src/types";
 
 const app = express();
@@ -306,16 +306,34 @@ const initialData: CivicShieldData = {
   notificationLogs: []
 };
 
-// Initialize Firebase Admin
+// Initialize Firebase
 let firestore: Firestore | null = null;
 try {
-  initializeApp({
-    projectId: "yodeling-bongo-ks6r9"
+  const CONFIG_FILE_PATH = path.join(process.cwd(), "firebase-applet-config.json");
+  let firebaseConfig: any = {
+    projectId: "yodeling-bongo-ks6r9",
+    firestoreDatabaseId: "ai-studio-civicshield-fba088c2-6576-44ca-a680-2913ae5ad65e"
+  };
+
+  if (fs.existsSync(CONFIG_FILE_PATH)) {
+    const rawConfig = fs.readFileSync(CONFIG_FILE_PATH, "utf-8");
+    firebaseConfig = { ...firebaseConfig, ...JSON.parse(rawConfig) };
+  }
+
+  const firebaseApp = initializeApp({
+    apiKey: firebaseConfig.apiKey,
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    messagingSenderId: firebaseConfig.messagingSenderId,
+    appId: firebaseConfig.appId,
+    measurementId: firebaseConfig.measurementId
   });
-  firestore = getFirestore("ai-studio-civicshield-fba088c2-6576-44ca-a680-2913ae5ad65e");
-  console.log("Firestore successfully initialized on database: ai-studio-civicshield-fba088c2-6576-44ca-a680-2913ae5ad65e");
+
+  firestore = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+  console.log("Firestore client SDK successfully initialized on database: " + (firebaseConfig.firestoreDatabaseId || "(default)"));
 } catch (error) {
-  console.error("Failed to initialize Firebase Admin / Firestore:", error);
+  console.error("Failed to initialize Firebase / Firestore via client SDK:", error);
 }
 
 // Help helper for reading data file
@@ -339,7 +357,7 @@ function saveData(newData: CivicShieldData) {
     
     // Asynchronously write to Firestore to prevent page-load blocking
     if (firestore) {
-      firestore.collection("campaign").doc("data").set(newData)
+      setDoc(doc(firestore, "campaign", "data"), newData)
         .then(() => {
           console.log("Successfully persisted updated campaignData to Firestore!");
         })
@@ -363,9 +381,9 @@ async function syncWithFirestore() {
   if (!firestore) return;
   try {
     console.log("Syncing database with Firestore on boot...");
-    const docRef = firestore.collection("campaign").doc("data");
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
+    const docRef = doc(firestore, "campaign", "data");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
       const remoteData = docSnap.data() as CivicShieldData;
       if (remoteData) {
         campaignData = remoteData;
@@ -375,7 +393,7 @@ async function syncWithFirestore() {
       }
     } else {
       console.log("No remote database document found in Firestore. Seeding current state...");
-      await docRef.set(campaignData);
+      await setDoc(docRef, campaignData);
       console.log("✓ Success: Seeded initial campaignData to Firestore!");
     }
   } catch (error) {
