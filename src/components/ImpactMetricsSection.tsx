@@ -147,7 +147,56 @@ export default function ImpactMetricsSection({
       .attr("stop-color", accentColor)
       .attr("stop-opacity", 0.85);
 
-    // Bars
+    // 1. Blueprint vertical guide lines:
+    // Append dashed gold draft lines representing the blueprint architecture before the solid bars rise
+    const blueprintGuides = svg.selectAll(".blueprint-guide")
+      .data(activeMetrics)
+      .enter()
+      .append("line")
+      .attr("class", "blueprint-guide")
+      .attr("x1", d => (x(d.label) || 0) + x.bandwidth() / 2)
+      .attr("x2", d => (x(d.label) || 0) + x.bandwidth() / 2)
+      .attr("y1", height)
+      .attr("y2", height)
+      .attr("stroke", "#d4af37")
+      .attr("stroke-opacity", 0.45)
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "3,3");
+
+    blueprintGuides.transition()
+      .duration(700)
+      .delay((d, i) => i * 100)
+      .attr("y2", d => y(d.value));
+
+    // 2. Connecting trend lines growing across top coordinates
+    const lineGenerator = d3.line<MetricItem>()
+      .x(d => (x(d.label) || 0) + x.bandwidth() / 2)
+      .y(d => y(d.value));
+
+    const pathData = lineGenerator(activeMetrics);
+
+    if (pathData) {
+      const path = svg.append("path")
+        .attr("d", pathData)
+        .attr("fill", "none")
+        .attr("stroke", "#d4af37")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-opacity", 0.6)
+        .attr("stroke-dasharray", "4,4");
+
+      const pathNode = path.node() as SVGPathElement | null;
+      const totalLength = pathNode ? pathNode.getTotalLength() : 800;
+
+      path
+        .attr("stroke-dasharray", totalLength + " " + totalLength)
+        .attr("stroke-dashoffset", totalLength)
+        .transition()
+        .duration(1200)
+        .delay(300)
+        .attr("stroke-dashoffset", 0);
+    }
+
+    // 3. Solid Bars rising from bottom
     const bars = svg.selectAll(".bar")
       .data(activeMetrics)
       .enter()
@@ -183,32 +232,39 @@ export default function ImpactMetricsSection({
         setHoveredBar(null);
       });
 
-    // Elegant animated enter transition for bars
+    // Elegant animated enter transition for bars delayed slightly after blueprint guides draw
     bars.transition()
-      .duration(900)
-      .delay((d, i) => i * 110)
+      .duration(1000)
+      .delay((d, i) => 400 + i * 110)
       .attr("y", d => y(d.value))
       .attr("height", d => height - y(d.value));
 
-    // Values written elegantly on top of bars
-    svg.selectAll(".bar-label")
+    // 4. Values counting upwards on top of bars
+    const barLabels = svg.selectAll(".bar-label")
       .data(activeMetrics)
       .enter()
       .append("text")
       .attr("class", "bar-label")
       .attr("x", d => (x(d.label) || 0) + x.bandwidth() / 2)
-      .attr("y", height) // start animation from bottom
-      .attr("textAnchor", "middle")
+      .attr("y", height - 6) // start near bottom
+      .attr("text-anchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("fontSize", "11px")
-      .attr("fontWeight", "600")
-      .attr("fontFamily", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
+      .attr("font-size", "11px")
+      .attr("font-weight", "600")
+      .attr("font-family", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
       .attr("pointer-events", "none")
-      .text(d => d.value)
-      .transition()
-      .duration(900)
-      .delay((d, i) => i * 110)
-      .attr("y", d => y(d.value) - 8);
+      .text(0);
+
+    barLabels.transition()
+      .duration(1100)
+      .delay((d, i) => 400 + i * 110)
+      .attr("y", d => y(d.value) - 8)
+      .tween("text", function(d) {
+        const i = d3.interpolateNumber(0, d.value);
+        return function(t) {
+          d3.select(this).text(Math.round(i(t)).toLocaleString());
+        };
+      });
 
   }, [dimensions, activeMetrics, accentColor]);
 

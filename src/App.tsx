@@ -26,6 +26,8 @@ import PremiumButton from "./components/PremiumButton";
 import ScrollReveal from "./components/ScrollReveal";
 import AchievementToast from "./components/AchievementToast";
 import LawBlueprint from "./components/LawBlueprint";
+import FloatingScrollIndicator from "./components/FloatingScrollIndicator";
+import ConstitutionalNetwork from "./components/ConstitutionalNetwork";
 
 export default function App() {
   const [data, setData] = useState<CivicShieldData | null>(null);
@@ -196,6 +198,18 @@ export default function App() {
           title: "The Justice Shield",
           visible: true,
           order: 4,
+          customData: {}
+        });
+        blocksUpdated = true;
+      }
+      
+      const hasConstitutionalNetwork = blockList.some((b: any) => b.id === "constitutional-network");
+      if (!hasConstitutionalNetwork) {
+        updatedBlocks.push({
+          id: "constitutional-network",
+          title: "Constitutional Network Map",
+          visible: true,
+          order: 5,
           customData: {}
         });
         blocksUpdated = true;
@@ -645,6 +659,9 @@ export default function App() {
 
           {/* Futuristic Cyber HUD Overlay */}
           <CyberHUD />
+
+          {/* Sovereign Floating Scroll Progress and Discovery Indicator */}
+          <FloatingScrollIndicator />
       
       {/* Header with Admin button */}
       <Header 
@@ -864,18 +881,16 @@ export default function App() {
 
             case "justice-shield":
               return (
-                <React.Fragment key={block.id}>
-                  <JusticeShieldSection
-                    isAdmin={isAdminMode}
-                    basicLaws={block.customData.basicLaws}
-                    legalMyths={block.customData.legalMyths}
-                    libraryStatutes={block.customData.libraryStatutes}
-                    onUpdateLaws={(nextLaws) => handleUpdateBlockData("justice-shield", { basicLaws: nextLaws })}
-                    onUpdateMyths={(nextMyths) => handleUpdateBlockData("justice-shield", { legalMyths: nextMyths })}
-                    onUpdateLibrary={(nextLibrary) => handleUpdateBlockData("justice-shield", { libraryStatutes: nextLibrary })}
-                  />
-                  <LawBlueprint />
-                </React.Fragment>
+                <JusticeShieldSection
+                  key={block.id}
+                  isAdmin={isAdminMode}
+                  basicLaws={block.customData.basicLaws}
+                  legalMyths={block.customData.legalMyths}
+                  libraryStatutes={block.customData.libraryStatutes}
+                  onUpdateLaws={(nextLaws) => handleUpdateBlockData("justice-shield", { basicLaws: nextLaws })}
+                  onUpdateMyths={(nextMyths) => handleUpdateBlockData("justice-shield", { legalMyths: nextMyths })}
+                  onUpdateLibrary={(nextLibrary) => handleUpdateBlockData("justice-shield", { libraryStatutes: nextLibrary })}
+                />
               );
 
             case "evidence":
@@ -917,6 +932,13 @@ export default function App() {
                     handleUpdateBlockData("timeline", { timeline: nextTimeline });
                   }}
                   accentColor={accentColor}
+                />
+              );
+
+            case "constitutional-network":
+              return (
+                <ConstitutionalNetwork
+                  key={block.id}
                 />
               );
 

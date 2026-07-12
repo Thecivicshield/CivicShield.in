@@ -1349,10 +1349,10 @@ export default function JusticeShieldSection({
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.08 }}
                 whileHover={{ y: -4, scale: 1.01, boxShadow: "0 15px 30px -10px rgba(212,175,55,0.08)" }}
-                className="bg-[#001a4d]/90 border border-[#d4af37]/15 p-5 rounded-sm hover:border-[#d4af37]/40 transition-colors flex flex-col justify-between"
+                className="relative min-h-[290px] bg-[#001a4d]/90 border border-[#d4af37]/15 rounded-sm overflow-hidden flex flex-col justify-between"
               >
                 {editingMythIndex === idx && isAdmin && onUpdateMyths ? (
-                  <div className="space-y-3 bg-[#001233] p-3 rounded-sm border border-[#d4af37]/25 mt-1 animate-in fade-in duration-200 text-left">
+                  <div className="p-5 space-y-3 bg-[#001233] rounded-sm border border-[#d4af37]/25 h-full overflow-y-auto text-left">
                     <div>
                       <label className="text-[9px] font-mono uppercase text-[#d4af37] block mb-0.5">Mythbuster Question</label>
                       <textarea
@@ -1401,83 +1401,192 @@ export default function JusticeShieldSection({
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-3 relative group text-left">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-mono font-bold text-red-400 bg-red-950/20 border border-red-500/10 py-0.5 px-2 rounded-sm inline-block uppercase">
-                          Misconception {idx + 1}
-                        </span>
-                        
-                        {isAdmin && onUpdateMyths && (
-                          <div className="flex items-center gap-1.5 text-[9px]">
+                    {/* Golden Truth Panel (Base Level, glows underneath) */}
+                    <AnimatePresence>
+                      {revealedQuiz[idx] && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          className="absolute inset-0 p-5 flex flex-col justify-between bg-gradient-to-br from-[#001233] via-black to-[#d4af37]/10 border border-[#d4af37] shadow-[inset_0_0_20px_rgba(212,175,55,0.15)] rounded-sm text-left z-0 overflow-y-auto"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[8px] font-mono bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/30 py-0.5 px-2 rounded-sm inline-block uppercase font-bold tracking-wider">
+                                Verified Legal Status
+                              </span>
+                              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">
+                                EVIDENCE UNLOCKED
+                              </span>
+                            </div>
+                            <h4 className="text-xs font-serif text-[#d4af37] leading-relaxed font-semibold">
+                              {myth.question}
+                            </h4>
+                            <p className="text-xs text-gray-200 leading-relaxed font-sans font-light p-3 bg-black/40 border-l border-[#d4af37] rounded-sm">
+                              {myth.answerOnTrue}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between border-t border-[#d4af37]/15 pt-3 mt-4">
+                            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                              <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Safeguard Secured
+                            </span>
                             <button
-                              onClick={() => {
-                                setEditingMythIndex(idx);
-                              }}
-                              className="font-mono text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
-                              title="Edit Mythbuster details"
+                              onClick={() => setRevealedQuiz(p => ({ ...p, [idx]: false }))}
+                              className="text-[9px] font-mono text-gray-400 hover:text-[#d4af37] uppercase tracking-wider transition-all cursor-pointer"
                             >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Permanently remove Misconception #${idx+1}?`)) {
-                                  onUpdateMyths(myths.filter((_, mIdx) => mIdx !== idx));
-                                }
-                              }}
-                              className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer transition-colors"
-                              title="Delete this misconception"
-                            >
-                              <Trash2 className="w-3 h-3" />
+                              Reset Card
                             </button>
                           </div>
-                        )}
-                      </div>
-                      <p className="text-xs font-serif font-semibold text-white leading-relaxed">
-                        {myth.question}
-                      </p>
-                      <p className="text-[10px] font-mono text-gray-400 italic">
-                        {myth.myth}
-                      </p>
-                    </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                    <div className="pt-4 border-t border-[#d4af37]/10 mt-4">
-                      <AnimatePresence mode="wait">
-                        {revealedQuiz[idx] ? (
-                          <motion.div 
-                            key="answer"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="text-xs text-gray-300 leading-relaxed font-sans space-y-1 bg-[#d4af37]/5 p-2.5 rounded-sm border border-[#d4af37]/15 text-left"
-                          >
-                            <p className="font-mono text-[9px] text-[#d4af37] font-bold uppercase">VERIFIED LAW STATUS :</p>
-                            <p>{myth.answerOnTrue}</p>
-                          </motion.div>
-                        ) : (
-                          <motion.button
-                            key="reveal-btn"
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              setRevealedQuiz(p => ({ ...p, [idx]: true }));
-                              try {
-                                window.dispatchEvent(new CustomEvent("unlock-achievement", {
-                                  detail: {
-                                    id: "myth-busted",
-                                    title: "Legal Myth Busted",
-                                    description: "You exposed a common administrative misconception and unlocked the statutory truth.",
-                                    category: "myth"
-                                  }
-                                }));
-                              } catch (e) {}
-                            }}
-                            className="w-full text-center py-2 bg-[#d4af37]/10 hover:bg-[#d4af37]/25 text-[#d4af37] text-[10px] uppercase font-mono font-bold rounded-sm border border-[#d4af37]/20 transition-all cursor-pointer"
-                          >
-                            Expose Legal Reality
-                          </motion.button>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                    {/* Shards overlay that cracks and flies apart */}
+                    <AnimatePresence>
+                      {!revealedQuiz[idx] && (
+                        <motion.div 
+                          exit={{ opacity: 0 }}
+                          className="absolute inset-0 z-10 bg-transparent"
+                        >
+                          <div className="relative w-full h-full">
+                            {/* Left Shard */}
+                            <motion.div
+                              initial={{ x: 0, rotate: 0, opacity: 1 }}
+                              exit={{ x: "-150%", rotate: -15, opacity: 0 }}
+                              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
+                              style={{ clipPath: "polygon(0 0, 55% 0, 45% 100%, 0 100%)" }}
+                              className="absolute inset-0 bg-[#001a4d] p-5 flex flex-col justify-between border-r border-[#d4af37]/10 rounded-sm select-none"
+                            >
+                              <div className="space-y-3 relative group text-left h-full flex flex-col justify-between pb-10">
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-mono font-bold text-red-400 bg-red-950/20 border border-red-500/10 py-0.5 px-2 rounded-sm inline-block uppercase">
+                                      Misconception {idx + 1}
+                                    </span>
+                                    
+                                    {isAdmin && onUpdateMyths && (
+                                      <div className="flex items-center gap-1.5 text-[9px] z-30">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingMythIndex(idx);
+                                          }}
+                                          className="font-mono text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
+                                          title="Edit Mythbuster details"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm(`Permanently remove Misconception #${idx+1}?`)) {
+                                              onUpdateMyths(myths.filter((_, mIdx) => mIdx !== idx));
+                                            }
+                                          }}
+                                          className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer transition-colors"
+                                          title="Delete this misconception"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <p className="text-xs font-serif font-semibold text-white leading-relaxed">
+                                    {myth.question}
+                                  </p>
+                                  <p className="text-[10px] font-mono text-gray-400 italic leading-relaxed">
+                                    {myth.myth}
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
+
+                            {/* Right Shard */}
+                            <motion.div
+                              initial={{ x: 0, rotate: 0, opacity: 1 }}
+                              exit={{ x: "150%", rotate: 15, opacity: 0 }}
+                              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
+                              style={{ clipPath: "polygon(55% 0, 100% 0, 100% 100%, 45% 100%)" }}
+                              className="absolute inset-0 bg-[#001a4d] p-5 flex flex-col justify-between border-l border-[#d4af37]/10 rounded-sm select-none"
+                            >
+                              <div className="space-y-3 relative group text-left h-full flex flex-col justify-between pb-10">
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-mono font-bold text-red-400 bg-red-950/20 border border-red-500/10 py-0.5 px-2 rounded-sm inline-block uppercase">
+                                      Misconception {idx + 1}
+                                    </span>
+                                    
+                                    {isAdmin && onUpdateMyths && (
+                                      <div className="flex items-center gap-1.5 text-[9px] z-30">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingMythIndex(idx);
+                                          }}
+                                          className="font-mono text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
+                                          title="Edit Mythbuster details"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm(`Permanently remove Misconception #${idx+1}?`)) {
+                                              onUpdateMyths(myths.filter((_, mIdx) => mIdx !== idx));
+                                            }
+                                          }}
+                                          className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer transition-colors"
+                                          title="Delete this misconception"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <p className="text-xs font-serif font-semibold text-white leading-relaxed">
+                                    {myth.question}
+                                  </p>
+                                  <p className="text-[10px] font-mono text-gray-400 italic leading-relaxed">
+                                    {myth.myth}
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
+
+                            {/* Fault line gold flare on hover */}
+                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30 group-hover:opacity-100 transition-opacity duration-300">
+                              <svg className="w-full h-full absolute inset-0" xmlns="http://www.w3.org/2000/svg">
+                                <line x1="55%" y1="0%" x2="45%" y2="100%" stroke="#d4af37" strokeWidth="1" className="drop-shadow-[0_0_2px_#d4af37]" />
+                              </svg>
+                            </div>
+
+                            {/* Trigger Button Overlay */}
+                            <div className="absolute bottom-5 left-5 right-5 z-20">
+                              <button
+                                onClick={() => {
+                                  setRevealedQuiz(p => ({ ...p, [idx]: true }));
+                                  try {
+                                    window.dispatchEvent(new CustomEvent("unlock-achievement", {
+                                      detail: {
+                                        id: "myth-busted",
+                                        title: "Legal Myth Busted",
+                                        description: "You exposed a common administrative misconception and unlocked the statutory truth.",
+                                        category: "myth"
+                                      }
+                                    }));
+                                  } catch (e) {}
+                                }}
+                                className="w-full text-center py-2.5 bg-[#d4af37]/10 hover:bg-[#d4af37] text-[#d4af37] hover:text-[#001233] text-[10px] uppercase font-mono font-bold rounded-sm border border-[#d4af37]/35 transition-all cursor-pointer shadow-md"
+                              >
+                                Expose Legal Reality
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </>
                 )}
               </motion.div>
