@@ -112,32 +112,33 @@
         ]
       }
     },
+
     {
       "id": "justice-shield",
       "title": "The Justice Shield",
       "visible": true,
-      "order": 6,
+      "order": 7,
       "customData": {}
     },
     {
       "id": "social-feed",
       "title": "Campaign Social Stream",
       "visible": true,
-      "order": 7,
+      "order": 8,
       "customData": {}
     },
     {
       "id": "blog",
       "title": "Latest Insights & Guides",
       "visible": true,
-      "order": 8,
+      "order": 9,
       "customData": {}
     },
     {
       "id": "newsletter",
       "title": "Civic Messenger Registration",
       "visible": true,
-      "order": 9,
+      "order": 10,
       "customData": {}
     }
   ],
@@ -286,5 +287,6 @@
       "sentAt": "2026-06-13 11:20",
       "recipientCount": 1
     }
-  ]
+  ],
+  "lastUpdated": 1783834217811
 }

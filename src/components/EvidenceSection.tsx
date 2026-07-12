@@ -42,9 +42,9 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
   // Filter items
   const filteredItems = evidence.filter(item => {
     const matchesFilter = activeFilter === 'all' || item.type === activeFilter;
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (item.title || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (item.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (item.fileName || "").toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 

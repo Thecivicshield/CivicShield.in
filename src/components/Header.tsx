@@ -1,5 +1,5 @@
-import React from "react";
-import { Shield, ShieldAlert, Lock, Unlock, Eye, Sparkles } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Shield, ShieldAlert, Lock, Unlock, Eye, Sparkles, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface HeaderProps {
@@ -10,12 +10,15 @@ interface HeaderProps {
 }
 
 export default function Header({ isAdminMode, setIsAdminMode, primaryColor, accentColor }: HeaderProps) {
-  const [isLockOpen, setIsLockOpen] = React.useState(false);
-  const [typedKey, setTypedKey] = React.useState("");
-  const [wrongKey, setWrongKey] = React.useState(false);
+  const [isLockOpen, setIsLockOpen] = useState(false);
+  const [typedKey, setTypedKey] = useState("");
+  const [wrongKey, setWrongKey] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Load administrative passkey from localStorage, defaulting to lol12ymn
-  const [adminPasskey, setAdminPasskey] = React.useState(() => {
+  const [adminPasskey, setAdminPasskey] = useState(() => {
     try {
       return localStorage.getItem("civic_shield_admin_passkey") || "lol12ymn";
     } catch {
@@ -24,15 +27,52 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
   });
 
   // State to manage changing administrative passcode
-  const [isChangePassOpen, setIsChangePassOpen] = React.useState(false);
-  const [newPasskey, setNewPasskey] = React.useState("");
-  const [confirmPasskey, setConfirmPasskey] = React.useState("");
-  const [changeError, setChangeError] = React.useState<string | null>(null);
-  const [changeSuccess, setChangeSuccess] = React.useState(false);
+  const [isChangePassOpen, setIsChangePassOpen] = useState(false);
+  const [newPasskey, setNewPasskey] = useState("");
+  const [confirmPasskey, setConfirmPasskey] = useState("");
+  const [changeError, setChangeError] = useState<string | null>(null);
+  const [changeSuccess, setChangeSuccess] = useState(false);
+
+  // Track scroll position to trigger shrinkage & frosted enhancement
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 25) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Track which section is currently active via scroll Intersection Observer
+  useEffect(() => {
+    const sections = ["pillars", "impact-metrics", "justice-shield", "evidence", "blog", "timeline"];
+    const observerOptions = {
+      root: null,
+      rootMargin: "-40% 0px -50% 0px", // triggers when section dominates screen
+      threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleToggleClick = () => {
     if (isAdminMode) {
-      // Log out instantly
       setIsAdminMode(false);
     } else {
       setIsLockOpen(true);
@@ -79,14 +119,28 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
     }
   };
 
+  const navLinks = [
+    { name: "Core Pillars", href: "#pillars", targetId: "pillars" },
+    { name: "Milestones", href: "#impact-metrics", targetId: "impact-metrics" },
+    { name: "Justice Shield", href: "#justice-shield", targetId: "justice-shield" },
+    { name: "Evidence Board", href: "#evidence", targetId: "evidence" },
+    { name: "Blog", href: "#blog", targetId: "blog" },
+    { name: "Roadmap", href: "#timeline", targetId: "timeline" }
+  ];
+
   return (
     <motion.header 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 border-b border-[#d4af37]/30 shadow-xl backdrop-blur-md transition-all duration-300 bg-[#001233]/95"
+      className={`sticky top-0 z-50 border-b transition-all duration-500 ease-out backdrop-blur-md ${
+        isScrolled 
+          ? "h-16 bg-[#001233]/85 border-[#d4af37]/25 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]" 
+          : "h-22 bg-[#001233]/95 border-[#d4af37]/15 shadow-xl"
+      }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        
         {/* Logo Shield */}
         <div className="flex items-center gap-3">
           <motion.div 
@@ -94,47 +148,53 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
             animate={{ rotate: 45, scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
             whileHover={{ scale: 1.05 }}
-            className="w-10 h-10 bg-[#d4af37] rounded-sm flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.25)] cursor-pointer"
+            className="w-10 h-10 bg-[#d4af37] rounded-sm flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.25)] cursor-pointer shrink-0"
           >
             <div className="-rotate-45 font-serif font-bold text-[#001a4d] text-lg select-none">CS</div>
           </motion.div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-[#d4af37] flex items-center gap-1">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-[#d4af37] flex items-center gap-1 leading-none">
               CIVIC <span className="text-white">SHIELD</span>
             </h1>
-            <p className="text-[9px] font-mono uppercase tracking-[0.22em] text-gray-400">Citizen Legal Literacy</p>
+            <p className="text-[8.5px] font-mono uppercase tracking-[0.25em] text-gray-400 mt-1">Citizen Legal Literacy</p>
           </div>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6">
-          {[
-            { name: "Core Pillars", href: "#pillars" },
-            { name: "Milestones", href: "#impact-metrics" },
-            { name: "Justice Shield", href: "#justice-shield" },
-            { name: "Evidence Board", href: "#evidence" },
-            { name: "Blog", href: "#blog" },
-            { name: "Roadmap", href: "#timeline" }
-          ].map((link) => (
-            <motion.a 
-              key={link.name}
-              href={link.href} 
-              whileHover={{ y: -2, color: "#d4af37" }}
-              className="text-xs font-bold tracking-wider uppercase text-gray-300 transition-colors"
-            >
-              {link.name}
-            </motion.a>
-          ))}
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center gap-7 h-full">
+          {navLinks.map((link) => {
+            const isActive = activeSection === link.targetId;
+            return (
+              <a 
+                key={link.name}
+                href={link.href} 
+                className={`relative text-[11px] font-bold tracking-wider uppercase h-full flex items-center transition-colors duration-300 ${
+                  isActive ? "text-[#d4af37]" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                {link.name}
+                
+                {/* Underline Slide and Active indicator using Framer Motion */}
+                {isActive && (
+                  <motion.span 
+                    layoutId="activeUnderline"
+                    className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#d4af37] shadow-[0_0_8px_#d4af37]"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
+                )}
+              </a>
+            );
+          })}
         </nav>
 
-        {/* Campaign Admin Switch */}
-        <div className="flex items-center gap-2">
+        {/* Campaign Admin Switch & Hamburger Icon */}
+        <div className="flex items-center gap-3">
           {isAdminMode && (
             <motion.button
               onClick={() => setIsChangePassOpen(true)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-sm text-[10px] font-bold tracking-wider uppercase bg-transparent text-gray-300 hover:text-white border border-gray-600 hover:border-gray-400 transition-colors cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-sm text-[10px] font-bold tracking-wider uppercase bg-transparent text-gray-300 hover:text-white border border-gray-600 hover:border-gray-400 transition-colors cursor-pointer"
             >
               <Eye className="w-3 h-3 text-[#d4af37]" />
               <span>Change Passkey</span>
@@ -146,26 +206,88 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
             onClick={handleToggleClick}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-sm text-xs font-bold tracking-wider uppercase transition-colors duration-300 cursor-pointer border ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-sm text-[10.5px] font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer border ${
               isAdminMode 
-                ? "bg-[#d4af37] text-[#001a4d] border-[#d4af37] shadow-[0_0_10px_rgba(212,175,55,0.3)]" 
+                ? "bg-[#d4af37] text-[#001a4d] border-[#d4af37] shadow-[0_0_12px_rgba(212,175,55,0.35)]" 
                 : "bg-transparent text-[#d4af37] hover:bg-[#d4af37] hover:text-[#001a4d] border-[#d4af37]/45"
             }`}
           >
             {isAdminMode ? (
               <>
                 <Unlock className="w-3.5 h-3.5" />
-                <span>Manager Active</span>
+                <span className="hidden xs:inline">Manager Active</span>
+                <span className="inline xs:hidden">Active</span>
               </>
             ) : (
               <>
                 <Lock className="w-3.5 h-3.5" />
-                <span>Manager Login</span>
+                <span className="hidden xs:inline">Manager Login</span>
+                <span className="inline xs:hidden">Login</span>
               </>
             )}
           </motion.button>
+
+          {/* Hamburger Mobile Menu Toggle */}
+          <motion.button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-sm md:hidden cursor-pointer"
+            whileTap={{ scale: 0.92 }}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5 text-[#d4af37]" /> : <Menu className="w-5 h-5" />}
+          </motion.button>
         </div>
       </div>
+
+      {/* Mobile Drawer menu animation */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="absolute top-full left-0 right-0 bg-[#001233]/98 border-b border-[#d4af37]/25 overflow-hidden md:hidden shadow-2xl z-40 backdrop-blur-lg"
+          >
+            <div className="px-4 py-6 space-y-4 flex flex-col">
+              {navLinks.map((link, idx) => {
+                const isActive = activeSection === link.targetId;
+                return (
+                  <motion.a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className={`text-xs font-bold uppercase tracking-wider py-1 border-l-2 pl-3 ${
+                      isActive 
+                        ? "text-[#d4af37] border-[#d4af37]" 
+                        : "text-gray-300 border-transparent hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </motion.a>
+                );
+              })}
+              
+              {isAdminMode && (
+                <motion.button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsChangePassOpen(true);
+                  }}
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: navLinks.length * 0.05 }}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-left text-gray-400 uppercase tracking-widest pt-2 border-t border-gray-800"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#d4af37]" /> Change Passkey
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* PASSPHRASE AUTHENTICATION modal overlay */}
       <AnimatePresence>
@@ -189,7 +311,7 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
                 duration: wrongKey ? 0.4 : 0.4,
                 bounce: wrongKey ? 0.5 : 0.15
               }}
-              className="w-full max-w-sm bg-[#001233] border-2 border-[#d4af37]/80 rounded-sm p-6 sm:p-8 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-6 text-center"
+              className="w-full max-w-sm bg-[#001233] border-2 border-[#d4af37]/80 rounded-sm p-6 sm:p-8 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-6 text-center mx-4"
             >
               <div className="space-y-2">
                 <div className="w-12 h-12 bg-[#d4af37]/10 border border-[#d4af37] rounded-sm flex items-center justify-center mx-auto text-[#d4af37]">
@@ -265,7 +387,7 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="w-full max-w-sm bg-[#001233] border-2 border-[#d4af37]/80 rounded-sm p-6 sm:p-8 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-6 text-center"
+              className="w-full max-w-sm bg-[#001233] border-2 border-[#d4af37]/80 rounded-sm p-6 sm:p-8 shadow-[0_0_50px_rgba(212,175,55,0.2)] space-y-6 text-center mx-4"
             >
               <div className="space-y-2">
                 <div className="w-12 h-12 bg-[#d4af37]/10 border border-[#d4af37] rounded-sm flex items-center justify-center mx-auto text-[#d4af37]">

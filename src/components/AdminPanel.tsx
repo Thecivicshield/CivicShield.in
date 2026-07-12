@@ -1506,7 +1506,7 @@ export default function AdminPanel({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Column 1: Backup / Download */}
             <div className="bg-[#001233] p-5 border border-[#d4af37]/15 rounded-sm space-y-4 font-sans">
               <div className="space-y-1">
@@ -1571,109 +1571,6 @@ export default function AdminPanel({
                   <li>Commit and push the changes to your <code className="text-white">main</code> folder branch.</li>
                   <li>Render will compile, deploy automatically, and remember every edit!</li>
                 </ol>
-              </div>
-            </div>
-
-            {/* Column 2: Restore / Upload */}
-            <div className="bg-[#001233] p-5 border border-[#d4af37]/15 rounded-sm space-y-4 font-sans">
-              <div className="space-y-1">
-                <span className="text-[8.5px] font-mono text-[#d4af37] tracking-widest uppercase">OPTION 2</span>
-                <h5 className="text-sm font-bold text-white uppercase font-serif">Upload / Restore Data Backup</h5>
-                <p className="text-[11px] text-gray-400 font-sans font-light">
-                  If the website redeployed and reset, you can instantly restore everything from a previously downloaded backup file without having to redo any of your manual edits.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="block">
-                  <span className="text-[9.5px] font-mono uppercase text-[#d4af37] block mb-1">Select Backup JSON File</span>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onload = async (event) => {
-                        try {
-                          const parsed = JSON.parse(event.target?.result as string);
-                          
-                          // Basic check
-                          if (!parsed.blocks || (!parsed.blogPosts && !parsed.evidence)) {
-                            alert("Invalid backup file format. Double check it is a valid backup JSON.");
-                            return;
-                          }
-
-                          if (confirm("Are you sure you want to restore the entire Campaign Database from this file? All current unsaved changes will be overridden.")) {
-                            const response = await fetch("/api/import-campaign-data", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify(parsed)
-                            });
-                            
-                            const resJson = await response.json();
-                            if (response.ok && resJson.success) {
-                              alert("✓ Campaign database successfully restored! Reloading page to apply updates...");
-                              window.location.reload();
-                            } else {
-                              alert("Failed to restore: " + (resJson.error || "Unknown error"));
-                            }
-                          }
-                        } catch (err: any) {
-                          alert("Error parsing backup JSON file: " + err.message);
-                        }
-                      };
-                      reader.readAsText(file);
-                    }}
-                    className="w-full text-xs text-gray-300 font-mono file:mr-4 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-[11px] file:font-bold file:uppercase file:bg-[#d4af37]/15 file:text-[#d4af37] hover:file:bg-[#d4af37]/25 file:cursor-pointer bg-[#001a4d] p-2 border border-[#d4af37]/15 rounded-sm"
-                  />
-                </label>
-
-                <div className="pt-2">
-                  <span className="text-[9.5px] font-mono uppercase text-[#d4af37] block mb-1">Or Paste Backup JSON Content</span>
-                  <textarea
-                    placeholder='Paste raw JSON content here {"blocks": [...], ...}'
-                    id="raw_json_input"
-                    rows={4}
-                    className="w-full text-xs font-mono bg-[#001a4d] border border-[#d4af37]/15 p-2.5 rounded-sm text-gray-200 focus:outline-none focus:border-[#d4af37]"
-                  />
-                  <button
-                    onClick={async () => {
-                      const area = document.getElementById("raw_json_input") as HTMLTextAreaElement;
-                      if (!area || !area.value.trim()) {
-                        alert("Paste JSON contents before submitting.");
-                        return;
-                      }
-                      try {
-                        const parsed = JSON.parse(area.value);
-                        if (!parsed.blocks) {
-                          alert("Invalid JSON data. Layout blocks list ('blocks') missing.");
-                          return;
-                        }
-                        if (confirm("Confirm restoral of copy-pasted configuration data?")) {
-                          const response = await fetch("/api/import-campaign-data", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(parsed)
-                          });
-                          
-                          const resJson = await response.json();
-                          if (response.ok && resJson.success) {
-                            alert("✓ Campaign database successfully restored! Reloading page...");
-                            window.location.reload();
-                          } else {
-                            alert("Failed: " + (resJson.error || "Unknown error"));
-                          }
-                        }
-                      } catch (err: any) {
-                        alert("Syntax mismatch. Invalid JSON format: " + err.message);
-                      }
-                    }}
-                    className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-[#001a4d] hover:bg-[#d4af37]/15 text-[#d4af37] font-bold text-xs uppercase rounded-sm border border-[#d4af37]/25 cursor-pointer transition-all duration-300"
-                  >
-                    <FileCheck className="w-3.5 h-3.5" /> Restore pasted JSON data
-                  </button>
-                </div>
               </div>
             </div>
           </div>

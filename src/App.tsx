@@ -19,7 +19,11 @@ import ImpactMetricsSection, { MetricItem } from "./components/ImpactMetricsSect
 import JusticeShieldSection from "./components/JusticeShieldSection";
 import IntroGate from "./components/IntroGate";
 import CyberHUD from "./components/CyberHUD";
-import StrategicDeploymentMap from "./components/StrategicDeploymentMap";
+import LoadingScreen from "./components/LoadingScreen";
+import CustomCursor from "./components/CustomCursor";
+import AestheticBackground from "./components/AestheticBackground";
+import PremiumButton from "./components/PremiumButton";
+import ScrollReveal from "./components/ScrollReveal";
 
 export default function App() {
   const [data, setData] = useState<CivicShieldData | null>(null);
@@ -33,6 +37,15 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const isFormallyLoaded = React.useRef(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const [showIntro, setShowIntro] = useState(() => {
     try {
@@ -136,26 +149,6 @@ export default function App() {
     }
   }, [isAdminMode]);
 
-  // Keep client-side backup cache in sync with state changes
-  useEffect(() => {
-    if (data && isAdminMode) {
-      try {
-        let backupData = { ...data };
-        if (isFormallyLoaded.current) {
-          // A user action triggered a state update! Advance the client-side timestamp.
-          const newTimestamp = Date.now();
-          backupData.lastUpdated = newTimestamp;
-          data.lastUpdated = newTimestamp;
-        } else {
-          isFormallyLoaded.current = true;
-        }
-        localStorage.setItem("civic_shield_campaign_backup_v2", JSON.stringify(backupData));
-      } catch (e) {
-        console.error("Local storage backup error:", e);
-      }
-    }
-  }, [data, isAdminMode]);
-
   // Fetch campaign database on mount
   useEffect(() => {
     fetchCampaignData();
@@ -168,49 +161,13 @@ export default function App() {
       if (!res.ok) throw new Error("Could not retrieve campaign configurations");
       let dbData = await res.json();
       
-      // Admin Auto-Sync Layer: If the server database was reset (redeployed/rebooted)
-      // but the administrator possesses a newer backup in browser storage, auto-sync and restore it in the background!
-      if (isAdminMode) {
-        try {
-          const rawBackup = localStorage.getItem("civic_shield_campaign_backup_v2");
-          if (rawBackup) {
-            const parsedBackup = JSON.parse(rawBackup) as CivicShieldData;
-            const serverLastUpdated = dbData.lastUpdated || 0;
-            const backupLastUpdated = parsedBackup.lastUpdated || 0;
-            
-            if (backupLastUpdated > serverLastUpdated) {
-              console.log("🔄 Auto-Sync: Client backup is newer than Server database. Restoring automatically...");
-              const restoreRes = await fetch("/api/import-campaign-data", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(parsedBackup)
-              });
-              if (restoreRes.ok) {
-                dbData = parsedBackup;
-                // Highlight auto-restore with a non-intrusive notification
-                setErrorNotice("🔄 Automatic Sync: Restored your latest changes from browser backup after server reboot!");
-                setTimeout(() => setErrorNotice(null), 5000);
-              }
-            } else if (dbData) {
-              // Server is newer or equal, cache the latest server state onto client
-              localStorage.setItem("civic_shield_campaign_backup_v2", JSON.stringify(dbData));
-            }
-          } else if (dbData) {
-            // First time backup creation
-            localStorage.setItem("civic_shield_campaign_backup_v2", JSON.stringify(dbData));
-          }
-        } catch (backupErr) {
-          console.error("Auto-sync resolution error:", backupErr);
-        }
-      }
-      
-      // Auto-heal / Migrate configuration blocks with new sections
-      const blockList = dbData.blocks || [];
+      // Auto-heal / Migrate configuration blocks with new sections (excluding deployment-map)
+      const rawBlockList = dbData.blocks || [];
+      const blockList = rawBlockList.filter((b: any) => b.id !== "deployment-map");
       const hasImpactMetrics = blockList.some((b: any) => b.id === "impact-metrics");
       const hasJusticeShield = blockList.some((b: any) => b.id === "justice-shield");
-      const hasDeploymentMap = blockList.some((b: any) => b.id === "deployment-map");
       
-      let blocksUpdated = false;
+      let blocksUpdated = rawBlockList.length !== blockList.length;
       const updatedBlocks = [...blockList];
       
       if (!hasImpactMetrics) {
@@ -237,17 +194,6 @@ export default function App() {
           title: "The Justice Shield",
           visible: true,
           order: 4,
-          customData: {}
-        });
-        blocksUpdated = true;
-      }
-
-      if (!hasDeploymentMap) {
-        updatedBlocks.push({
-          id: "deployment-map",
-          title: "Strategic Deployment Map",
-          visible: true,
-          order: 5,
           customData: {}
         });
         blocksUpdated = true;
@@ -656,18 +602,7 @@ export default function App() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#001a4d] flex flex-col items-center justify-center text-[#d4af37] space-y-4">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-sm border-t-2 border-r-2 border-[#d4af37] animate-spin" />
-          <Landmark className="absolute inset-0 m-auto w-6 h-6 animate-pulse text-[#d4af37]" />
-        </div>
-        <div className="text-center">
-          <h3 className="text-sm font-serif font-bold uppercase tracking-widest">Compiling Civic Shield</h3>
-          <p className="text-[9px] font-mono text-gray-400 mt-1 uppercase tracking-widest">Loading campaigning data streams...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   const sortedBlocks = data ? [...data.blocks].sort((a, b) => a.order - b.order) : [];
@@ -698,8 +633,14 @@ export default function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="min-h-screen font-sans antialiased text-gray-100 flex flex-col justify-between bg-[#001a4d]"
+          className="min-h-screen font-sans antialiased text-gray-100 flex flex-col justify-between bg-[#001a4d] relative overflow-hidden"
         >
+          {/* Custom Premium Hover Cursor */}
+          <CustomCursor />
+
+          {/* Immersive Legal Blueprint Background with drifting particles */}
+          <AestheticBackground />
+
           {/* Futuristic Cyber HUD Overlay */}
           <CyberHUD />
       
@@ -757,22 +698,34 @@ export default function App() {
         )}
 
         {/* Dynamic layouter blocks based on user-sorted array order */}
-        {sortedBlocks.map((block) => {
+        {sortedBlocks.map((block, index) => {
           if (!block.visible) return null;
 
-          switch (block.id) {
+          const blockContent = (() => {
+            switch (block.id) {
             case "hero":
+              const titleText = block.customData.heroTitle || "CIVIC SHIELD";
+              const titleChars = Array.from(titleText);
               return (
                 <section 
                   key={block.id}
-                  className="relative py-28 flex flex-col items-center justify-center overflow-hidden border-b border-[#d4af37]/25 text-center select-none bg-[#001233]"
-                  style={{ background: `linear-gradient(135deg, #001233 0%, #001a4d 60%, #002366 100%)` }}
+                  className="relative py-32 flex flex-col items-center justify-center overflow-hidden border-b border-[#d4af37]/25 text-center select-none bg-[#001233]"
+                  style={{ 
+                    background: `radial-gradient(circle at center, #001a4d 0%, #001233 70%, #000a1a 100%)` 
+                  }}
                 >
-                  {/* Glowing background highlights */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#d4af37]/5 blur-[120px] pointer-events-none" />
+                  {/* Glowing background highlights and gold sweep layer */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full bg-[#d4af37]/[0.03] blur-[140px] pointer-events-none" />
                   
-                  <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 space-y-8">
-                    
+                  {/* Gold Light Sweep */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute top-0 bottom-0 w-[45%] bg-gradient-to-r from-transparent via-[#d4af37]/[0.05] to-transparent -skew-x-12 animate-[shimmerSweep_7s_infinite_ease-in-out]" />
+                  </div>
+
+                  <motion.div 
+                    style={{ y: scrollY * 0.18 }}
+                    className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 space-y-8"
+                  >
                     {/* Big Heading (Editable in-place if Manager Mode is ON) */}
                     <div className="space-y-4">
                       {isAdminMode ? (
@@ -792,23 +745,52 @@ export default function App() {
                           />
                         </div>
                       ) : (
-                        <>
-                          <h1 className="text-4xl sm:text-6xl font-serif font-normal italic tracking-tight text-white leading-tight">
-                            {block.customData.heroTitle || "CIVIC SHIELD"}
+                        <div className="flex flex-col items-center justify-center">
+                          {/* Letter-by-letter title reveal */}
+                          <h1 className="text-4xl sm:text-6xl font-serif font-normal italic tracking-tight text-white leading-tight flex flex-wrap justify-center gap-x-1.5 max-w-3xl">
+                            {titleChars.map((char, charIdx) => (
+                              <motion.span
+                                key={charIdx}
+                                initial={{ opacity: 0, y: 15, filter: "blur(4px)" }}
+                                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                                transition={{
+                                  duration: 0.6,
+                                  delay: charIdx * 0.035,
+                                  ease: [0.16, 1, 0.3, 1],
+                                }}
+                                className="inline-block select-text"
+                              >
+                                {char === " " ? "\u00A0" : char}
+                              </motion.span>
+                            ))}
                           </h1>
-                          <p className="max-w-2xl mx-auto text-xs sm:text-sm text-gray-300 leading-relaxed font-sans font-light">
+                          <motion.p 
+                            initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                            transition={{ 
+                              delay: Math.max(0.4, titleChars.length * 0.02), 
+                              duration: 0.85,
+                              ease: [0.16, 1, 0.3, 1]
+                            }}
+                            className="max-w-2xl mx-auto text-xs sm:text-sm text-gray-300 leading-relaxed font-sans font-light mt-4 select-text"
+                          >
                             {block.customData.heroSubtitle}
-                          </p>
-                        </>
+                          </motion.p>
+                        </div>
                       )}
                     </div>
 
                     {/* Urgent Action Alert / Notice block (Editable in-place) */}
                     {block.customData.heroAlertText && (
-                      <div className="max-w-3xl mx-auto p-4 sm:p-5 rounded-sm bg-[#d4af37]/10 border border-[#d4af37]/35 text-[#d4af37] space-y-1 text-center shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center gap-3 justify-center animate-pulse">
-                        <AlertCircle className="w-5 h-5 shrink-0 text-[#d4af37]" />
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.8, duration: 0.6 }}
+                        className="max-w-3xl mx-auto p-4 sm:p-5 rounded-sm bg-[#d4af37]/10 border border-[#d4af37]/35 text-[#d4af37] space-y-1 text-center shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center gap-3 justify-center"
+                      >
+                        <AlertCircle className="w-5 h-5 shrink-0 text-[#d4af37] animate-pulse" />
                         {isAdminMode ? (
-                          <div className="flex-1">
+                          <div className="flex-1 text-left">
                             <span className="text-[8px] uppercase font-mono text-[#d4af37] block mb-1">Edit Banner Notice Bubble</span>
                             <textarea
                               value={block.customData.heroAlertText || ""}
@@ -818,29 +800,34 @@ export default function App() {
                             />
                           </div>
                         ) : (
-                          <p className="text-xs sm:text-sm font-bold leading-relaxed tracking-wide font-sans">
+                          <p className="text-xs sm:text-sm font-bold leading-relaxed tracking-wide font-sans select-text">
                             {block.customData.heroAlertText}
                           </p>
                         )}
-                      </div>
+                      </motion.div>
                     )}
 
-                    {/* CTAs */}
-                    <div className="flex flex-wrap items-center justify-center gap-4">
-                      <a 
-                        href="#evidence"
-                        className="px-6 py-3 bg-[#d4af37] hover:bg-[#c39e2e] text-[#001a4d] font-bold text-xs tracking-wider uppercase rounded-sm shadow-xl transition-all scale-100 hover:scale-105"
-                      >
-                        Browse Evidence
-                      </a>
-                      <a 
-                        href="#blog"
-                        className="px-6 py-3 bg-[#001233]/90 hover:bg-[#001a4d] border border-[#d4af37]/30 hover:border-[#d4af37] text-[#d4af37] hover:text-white font-bold text-xs tracking-wider uppercase rounded-sm transition-all"
-                      >
+                    {/* CTAs with Stagger animation */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ 
+                        delay: Math.max(0.6, titleChars.length * 0.025 + 0.25), 
+                        duration: 0.6,
+                        type: "spring",
+                        stiffness: 100,
+                        damping: 15
+                      }}
+                      className="flex flex-wrap items-center justify-center gap-4 pt-2"
+                    >
+                      <PremiumButton href="#evidence" variant="gold">
+                        Browse Evidence <ArrowUpRight className="w-4 h-4 ml-1 shrink-0" />
+                      </PremiumButton>
+                      <PremiumButton href="#blog" variant="outline">
                         Recent Dispatches
-                      </a>
-                    </div>
-                  </div>
+                      </PremiumButton>
+                    </motion.div>
+                  </motion.div>
                 </section>
               );
 
@@ -884,14 +871,6 @@ export default function App() {
                   onUpdateLaws={(nextLaws) => handleUpdateBlockData("justice-shield", { basicLaws: nextLaws })}
                   onUpdateMyths={(nextMyths) => handleUpdateBlockData("justice-shield", { legalMyths: nextMyths })}
                   onUpdateLibrary={(nextLibrary) => handleUpdateBlockData("justice-shield", { libraryStatutes: nextLibrary })}
-                />
-              );
-
-            case "deployment-map":
-              return (
-                <StrategicDeploymentMap
-                  key={block.id}
-                  isAdmin={isAdminMode}
                 />
               );
 
@@ -971,7 +950,20 @@ export default function App() {
             default:
               return null;
           }
-        })}
+        })();
+
+        if (!blockContent) return null;
+
+        if (block.id === "hero") {
+          return blockContent;
+        }
+
+        return (
+          <ScrollReveal key={block.id} index={index}>
+            {blockContent}
+          </ScrollReveal>
+        );
+      })}
 
       </main>
 
@@ -990,7 +982,24 @@ export default function App() {
             </div>
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-6 text-[10px] text-gray-400 font-mono">
+          <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-6 text-[10px] text-gray-400 font-mono">
+            <button
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem("civic_shield_intro_passed");
+                } catch (e) {}
+                // Reset window hash and scroll to top for full immersive introduction reload
+                window.scrollTo({ top: 0, behavior: "instant" });
+                if (window.location.hash) {
+                  window.history.pushState("", document.title, window.location.pathname + window.location.search);
+                }
+                setShowIntro(true);
+              }}
+              className="text-[#d4af37] hover:text-white transition-colors cursor-pointer flex items-center gap-1 uppercase tracking-widest font-bold"
+            >
+              <Sparkles className="w-3 h-3 text-[#d4af37]" /> Replay Cinematic Intro
+            </button>
+            <span className="hidden lg:inline">•</span>
             <span>SECURE ENCRYPTED SERVERS</span>
             <span className="hidden md:inline">•</span>
             <span>NO COOKIE LOGGERS</span>

@@ -458,6 +458,64 @@ export default function JusticeShieldSection({
           </p>
         </motion.div>
 
+        {/* Statutes Board Explanation Guide */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="mb-16 bg-[#001233]/40 border border-[#d4af37]/15 rounded-sm p-6 relative overflow-hidden backdrop-blur-sm"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex flex-col md:flex-row items-start gap-6 font-sans text-left">
+            <div className="p-4 bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37] rounded-sm shrink-0 flex items-center justify-center">
+              <Gavel className="w-8 h-8" />
+            </div>
+            <div className="space-y-4 flex-1">
+              <div>
+                <h3 className="text-sm font-mono font-bold uppercase tracking-widest text-[#d4af37]">
+                  How to Use the Statutes Board
+                </h3>
+                <p className="text-[11px] text-gray-400 font-mono tracking-wider mt-1 uppercase">
+                  Sovereign Citizen Administrative Interface & Auditing Protocol
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                <div className="space-y-2 border-l-2 border-[#d4af37]/30 pl-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono bg-[#d4af37]/15 text-[#d4af37] px-1.5 py-0.5 rounded-sm font-bold">01</span>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Demystify Core Protections</h4>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Examine core legal standards under <strong>Constitutional Articles</strong> and active <strong>Civil & Penal codes</strong>. Understanding these safeguards limits arbitrary administrative overreach.
+                  </p>
+                </div>
+
+                <div className="space-y-2 border-l-2 border-[#d4af37]/30 pl-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono bg-[#d4af37]/15 text-[#d4af37] px-1.5 py-0.5 rounded-sm font-bold">02</span>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Debunk Common Misconceptions</h4>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Test your understanding with the <strong>Interactive Mythbusters Panel</strong> below. Learn about your absolute rights to record public officers, challenge immediate seals, and reject warrantless searches.
+                  </p>
+                </div>
+
+                <div className="space-y-2 border-l-2 border-[#d4af37]/30 pl-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono bg-[#d4af37]/15 text-[#d4af37] px-1.5 py-0.5 rounded-sm font-bold">03</span>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Secure Reference Pins</h4>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    Filter, search, and click the <strong>Pin Icon</strong> on relevant statutes to anchor them directly to your personal workspace deck for instant quick-access during urgent roadside or municipal interactions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Pinned Statutes Dashboard (Citizen's Quick-Access Hub) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

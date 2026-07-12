@@ -2,6 +2,8 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { GoogleGenAI } from "@google/genai";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore, Firestore } from "firebase-admin/firestore";
 import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog } from "./src/types";
 
 const app = express();
@@ -304,6 +306,18 @@ const initialData: CivicShieldData = {
   notificationLogs: []
 };
 
+// Initialize Firebase Admin
+let firestore: Firestore | null = null;
+try {
+  initializeApp({
+    projectId: "yodeling-bongo-ks6r9"
+  });
+  firestore = getFirestore("ai-studio-civicshield-fba088c2-6576-44ca-a680-2913ae5ad65e");
+  console.log("Firestore successfully initialized on database: ai-studio-civicshield-fba088c2-6576-44ca-a680-2913ae5ad65e");
+} catch (error) {
+  console.error("Failed to initialize Firebase Admin / Firestore:", error);
+}
+
 // Help helper for reading data file
 function loadData(): CivicShieldData {
   try {
@@ -322,6 +336,17 @@ function saveData(newData: CivicShieldData) {
   try {
     newData.lastUpdated = Date.now();
     fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(newData, null, 2), "utf-8");
+    
+    // Asynchronously write to Firestore to prevent page-load blocking
+    if (firestore) {
+      firestore.collection("campaign").doc("data").set(newData)
+        .then(() => {
+          console.log("Successfully persisted updated campaignData to Firestore!");
+        })
+        .catch((error) => {
+          console.error("Failed to write to Firestore:", error);
+        });
+    }
   } catch (error) {
     console.error("Failed to write to civic_data.json:", error);
   }
@@ -332,6 +357,32 @@ let campaignData = loadData();
 
 // Seed initial files of DB
 saveData(campaignData);
+
+// Asynchronously sync with Firestore on boot
+async function syncWithFirestore() {
+  if (!firestore) return;
+  try {
+    console.log("Syncing database with Firestore on boot...");
+    const docRef = firestore.collection("campaign").doc("data");
+    const docSnap = await docRef.get();
+    if (docSnap.exists) {
+      const remoteData = docSnap.data() as CivicShieldData;
+      if (remoteData) {
+        campaignData = remoteData;
+        // Keep local cache file updated
+        fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(campaignData, null, 2), "utf-8");
+        console.log("✓ Success: Synced campaignData from persistent Firestore on boot!");
+      }
+    } else {
+      console.log("No remote database document found in Firestore. Seeding current state...");
+      await docRef.set(campaignData);
+      console.log("✓ Success: Seeded initial campaignData to Firestore!");
+    }
+  } catch (error) {
+    console.error("Failed to sync with Firestore on boot:", error);
+  }
+}
+syncWithFirestore();
 
 // Initialize Gemini Client
 let aiClient: GoogleGenAI | null = null;
@@ -357,25 +408,6 @@ app.use("/uploads", express.static(UPLOADS_DIR));
 // Get all campaigning data
 app.get("/api/campaign-data", (req, res) => {
   res.json(campaignData);
-});
-
-// Import entirely formatted campaign data to restore backups / prevent resets across redeploys
-app.post("/api/import-campaign-data", (req, res) => {
-  try {
-    const data = req.body;
-    if (!data) {
-      return res.status(400).json({ error: "Empty request body." });
-    }
-    // Perform basic verification to confirm this is a valid civic_data.json schema
-    if (Array.isArray(data.blocks) && (Array.isArray(data.blogPosts) || Array.isArray(data.evidence))) {
-      campaignData = data;
-      saveData(campaignData);
-      return res.json({ success: true, message: "Campaign database imported successfully!" });
-    }
-    res.status(400).json({ error: "Invalid backup data structure. JSON must conform to civic_data.json layout." });
-  } catch (e: any) {
-    res.status(500).json({ error: e.message });
-  }
 });
 
 // Update blocks layout (for complete customization & drag-n-drop sorting)

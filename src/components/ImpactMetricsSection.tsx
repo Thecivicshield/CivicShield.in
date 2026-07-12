@@ -84,11 +84,11 @@ export default function ImpactMetricsSection({
       .attr("transform", `translate(0,${height})`)
       .call(d3.axisBottom(x))
       .selectAll("text")
-      .style("text-anchor", "middle")
+      .style("textAnchor", "middle")
       .attr("dy", "1em")
       .attr("fill", "#9ca3af")
-      .attr("font-size", "10px")
-      .attr("font-family", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
+      .attr("fontSize", "10px")
+      .attr("fontFamily", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
       .style("text-transform", "uppercase")
       .style("letter-spacing", "0.05em")
       .each(function() {
@@ -113,8 +113,8 @@ export default function ImpactMetricsSection({
       .call(yAxis)
       .selectAll("text")
       .attr("fill", "#9ca3af")
-      .attr("font-size", "10px")
-      .attr("font-family", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace");
+      .attr("fontSize", "10px")
+      .attr("fontFamily", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace");
 
     // Y Axis Grid lines
     svg.append("g")
@@ -123,7 +123,7 @@ export default function ImpactMetricsSection({
       .selectAll(".tick line")
       .attr("stroke", "#d4af37")
       .attr("stroke-opacity", 0.08)
-      .attr("stroke-dasharray", "2,2");
+      .attr("strokeDasharray", "2,2");
 
     // Remove secondary Y domain border lines
     svg.selectAll(".grid .domain").remove();
@@ -161,7 +161,7 @@ export default function ImpactMetricsSection({
       .attr("ry", 3)
       .attr("fill", "url(#bar-glow-gradient)")
       .attr("stroke", accentColor)
-      .attr("stroke-width", 1.5)
+      .attr("strokeWidth", 1.5)
       .attr("stroke-opacity", 0.6)
       .attr("cursor", "pointer")
       .on("mouseover", function(event, d) {
@@ -170,7 +170,7 @@ export default function ImpactMetricsSection({
           .duration(150)
           .attr("fill-opacity", 1.0)
           .attr("stroke-opacity", 1.0)
-          .attr("stroke-width", 2.2);
+          .attr("strokeWidth", 2.2);
         setHoveredBar(d);
       })
       .on("mouseleave", function() {
@@ -179,7 +179,7 @@ export default function ImpactMetricsSection({
           .duration(150)
           .attr("fill-opacity", 0.9)
           .attr("stroke-opacity", 0.6)
-          .attr("stroke-width", 1.5);
+          .attr("strokeWidth", 1.5);
         setHoveredBar(null);
       });
 
@@ -198,11 +198,11 @@ export default function ImpactMetricsSection({
       .attr("class", "bar-label")
       .attr("x", d => (x(d.label) || 0) + x.bandwidth() / 2)
       .attr("y", height) // start animation from bottom
-      .attr("text-anchor", "middle")
+      .attr("textAnchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("font-size", "11px")
-      .attr("font-weight", "600")
-      .attr("font-family", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
+      .attr("fontSize", "11px")
+      .attr("fontWeight", "600")
+      .attr("fontFamily", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
       .attr("pointer-events", "none")
       .text(d => d.value)
       .transition()
