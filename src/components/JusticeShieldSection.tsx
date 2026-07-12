@@ -1555,13 +1555,6 @@ export default function JusticeShieldSection({
                               </div>
                             </motion.div>
 
-                            {/* Fault line gold flare on hover */}
-                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30 group-hover:opacity-100 transition-opacity duration-300">
-                              <svg className="w-full h-full absolute inset-0" xmlns="http://www.w3.org/2000/svg">
-                                <line x1="55%" y1="0%" x2="45%" y2="100%" stroke="#d4af37" strokeWidth="1" className="drop-shadow-[0_0_2px_#d4af37]" />
-                              </svg>
-                            </div>
-
                             {/* Trigger Button Overlay */}
                             <div className="absolute bottom-5 left-5 right-5 z-20">
                               <button
