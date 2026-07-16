@@ -317,7 +317,7 @@ export default function ImpactMetricsSection({
             <Trophy className="w-3.5 h-3.5" /> Campaign Milestones
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white mb-4">
-            Measuring Our <span className="text-[#d4af37] font-serif not-italic">Impact</span>
+            The Civic <span className="text-[#d4af37] font-serif not-italic font-bold">Empowerment Ledger</span>
           </h2>
           <p className="text-gray-300 text-sm max-w-xl mx-auto leading-relaxed font-light">
             We quantify legal literacy. By tracking processed support requests, public seminars, and legal objections, we gauge our progress in erasing procedural anxiety.

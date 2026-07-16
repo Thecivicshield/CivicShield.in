@@ -28,6 +28,7 @@ import AchievementToast from "./components/AchievementToast";
 import LawBlueprint from "./components/LawBlueprint";
 import FloatingScrollIndicator from "./components/FloatingScrollIndicator";
 import ConstitutionalNetwork from "./components/ConstitutionalNetwork";
+import FilingCabinetNavigation from "./components/FilingCabinetNavigation";
 
 export default function App() {
   const [data, setData] = useState<CivicShieldData | null>(null);
@@ -662,6 +663,9 @@ export default function App() {
 
           {/* Sovereign Floating Scroll Progress and Discovery Indicator */}
           <FloatingScrollIndicator />
+
+          {/* Immersive filing cabinet page transitions */}
+          <FilingCabinetNavigation />
       
       {/* Header with Admin button */}
       <Header 

@@ -71,7 +71,7 @@ export default function InteractiveLawCard({ children, className = "", id, onCli
         rotateY,
       }}
       onClick={onClick}
-      className={`relative rounded-sm border border-[#d4af37]/20 hover:border-[#d4af37]/50 bg-[#001233]/90 p-5 shadow-xl hover:shadow-[#d4af37]/[0.04] transition-all cursor-pointer overflow-hidden group ${className}`}
+      className={`relative rounded-sm border border-[#d4af37]/20 bg-[#001233]/90 p-5 shadow-xl transition-all cursor-pointer forensic-scanner paper-stack-card group ${className}`}
     >
       {/* 1. Reflective holographic shine sweep layer */}
       <div 

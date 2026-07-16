@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Calendar, FileCheck, ExternalLink, ShieldAlert, Award } from "lucide-react";
 import { EvidenceItem } from "../types";
+import HolographicVerifiedBadge from "./HolographicVerifiedBadge";
 
 interface EvidenceFolderViewProps {
   item: EvidenceItem;
@@ -125,9 +126,16 @@ export default function EvidenceFolderView({ item, onClose }: EvidenceFolderView
                   <span className="text-[9px] font-mono font-bold tracking-widest text-gray-400 block mb-1">
                     CERTIFIED BY:
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-700 font-mono">
-                    <FileCheck className="w-3.5 h-3.5 text-green-600" />
-                    <span>{item.verifiedBy}</span>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-700 font-mono">
+                      <FileCheck className="w-3.5 h-3.5 text-green-600" />
+                      <span>{item.verifiedBy}</span>
+                    </div>
+                    {item.verifiedBy && (
+                      <div className="mt-1">
+                        <HolographicVerifiedBadge verifiedBy={item.verifiedBy} />
+                      </div>
+                    )}
                   </div>
                 </div>
 

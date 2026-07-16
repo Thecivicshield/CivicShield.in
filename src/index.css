@@ -476,6 +476,193 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
 }
 
+/* --- HOLOGRAPHIC SHIMMER & IRIDESCENCE --- */
+@keyframes holographicShine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes holographicSheen {
+  0% {
+    transform: translateX(-150%) rotate(25deg);
+  }
+  100% {
+    transform: translateX(150%) rotate(25deg);
+  }
+}
+
+.holographic-badge-badge {
+  background: linear-gradient(
+    135deg,
+    #b59d57 0%,
+    #d4af37 25%,
+    #f5e6be 50%,
+    #d4af37 75%,
+    #b59d57 100%
+  );
+  background-size: 300% 300%;
+  animation: holographicShine 6s ease infinite;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.25), inset 0 0 4px rgba(255, 255, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.holographic-badge-badge::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 20%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.8) 50%,
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: holographicSheen 3.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* ==========================================================================
+   FORENSIC SCANNER BEAM EFFECT
+   ========================================================================== */
+@keyframes forensicLaser {
+  0% {
+    top: -5%;
+  }
+  50% {
+    top: 105%;
+  }
+  100% {
+    top: -5%;
+  }
+}
+
+.forensic-scanner {
+  position: relative;
+  overflow: hidden;
+}
+
+.forensic-scanner::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #ffd754, #d4af37, #00f0ff, transparent);
+  box-shadow: 0 0 14px 2px rgba(212, 175, 55, 0.7), 0 0 4px rgba(0, 240, 255, 0.5);
+  opacity: 0;
+  z-index: 30;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.forensic-scanner:hover::before {
+  opacity: 1;
+  animation: forensicLaser 2s ease-in-out infinite;
+}
+
+.forensic-scanner:hover {
+  border-color: rgba(212, 175, 55, 0.6) !important;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15), inset 0 0 10px rgba(212, 175, 55, 0.05) !important;
+}
+
+/* ==========================================================================
+   PAPER STACK CARD EFFECT
+   ========================================================================== */
+.paper-stack-card {
+  position: relative;
+  background: #001233;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+
+/* Subtle underlying fake paper sheet 1 */
+.paper-stack-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 26, 77, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 2px;
+  transform: rotate(0deg) translate(0px, 0px);
+  z-index: -1;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+/* Subtle underlying fake paper sheet 2 */
+.paper-stack-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 10, 30, 0.95);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  border-radius: 2px;
+  transform: rotate(0deg) translate(0px, 0px);
+  z-index: -2;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.paper-stack-card:hover {
+  transform: translateY(-8px);
+  z-index: 20;
+}
+
+.paper-stack-card:hover::after {
+  transform: rotate(2.5deg) translate(5px, 3px);
+  background: rgba(0, 18, 51, 0.9);
+  border-color: rgba(212, 175, 55, 0.25);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.paper-stack-card:hover::before {
+  transform: rotate(-3deg) translate(-4px, 5px);
+  background: rgba(0, 13, 38, 0.95);
+  border-color: rgba(212, 175, 55, 0.15);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+/* ==========================================================================
+   OFFICIAL RUBBER STAMP IMPACT
+   ========================================================================== */
+@keyframes stampImpact {
+  0% {
+    transform: scale(2.8) rotate(-18deg);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  45% {
+    transform: scale(0.95) rotate(-11deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  50% {
+    transform: scale(1) rotate(-12deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-12deg);
+    opacity: 1;
+  }
+}
+
+.rubber-stamp-impact {
+  animation: stampImpact 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center;
+}
+
+
+
 
 
 

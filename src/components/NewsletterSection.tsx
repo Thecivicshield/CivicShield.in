@@ -64,7 +64,7 @@ export default function NewsletterSection({ onSubscribe }: NewsletterSectionProp
           className="space-y-3"
         >
           <h2 className="text-2xl sm:text-4xl font-serif font-normal italic tracking-tight text-white flex items-center justify-center gap-2">
-            Subscribe to the <span className="text-[#d4af37] font-serif not-italic">Shield Chronicle</span> <Sparkles className="w-5 h-5 text-[#d4af37]" />
+            Subscribe to the <span className="text-[#d4af37] font-serif not-italic font-bold">Covenant Dispatch Protocols</span> <Sparkles className="w-5 h-5 text-[#d4af37]" />
           </h2>
           <p className="text-xs sm:text-sm text-gray-300 max-w-lg mx-auto leading-relaxed font-light">
             Register your email. We send direct legal hearing notices, unedited council video logs, and patrol schedules. No spam, premium privacy.
@@ -116,15 +116,24 @@ export default function NewsletterSection({ onSubscribe }: NewsletterSectionProp
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="max-w-md mx-auto"
+              className="max-w-md mx-auto relative"
             >
-              <p className={`text-xs font-semibold px-4 py-2.5 rounded-sm border ${
-                status === 'success' 
-                  ? 'bg-[#d4af37]/10 text-[#d4af37] border-[#d4af37]/35' 
-                  : 'bg-red-500/10 text-red-400 border-red-500/20'
-              }`}>
-                {message}
-              </p>
+              <div className="relative">
+                {status === 'success' && (
+                  <div className="absolute -top-10 -right-6 z-50 pointer-events-none select-none rubber-stamp-impact">
+                    <div className="border-4 border-dashed border-[#d4af37]/90 text-[#d4af37] font-mono font-extrabold tracking-[0.25em] text-[13px] px-3.5 py-1.5 rounded bg-[#001233] shadow-[0_8px_24px_rgba(0,0,0,0.85)]">
+                      APPROVED
+                    </div>
+                  </div>
+                )}
+                <p className={`text-xs font-semibold px-4 py-2.5 rounded-sm border ${
+                  status === 'success' 
+                    ? 'bg-[#d4af37]/10 text-[#d4af37] border-[#d4af37]/35' 
+                    : 'bg-red-500/10 text-red-400 border-red-500/20'
+                }`}>
+                  {message}
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

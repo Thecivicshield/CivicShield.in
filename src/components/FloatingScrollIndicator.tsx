@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useScroll, motion, AnimatePresence } from "motion/react";
 import { Shield, Sparkles, BookOpen, Compass, Award, X, ChevronRight, FileText, CheckCircle2 } from "lucide-react";
+import SovereignQuizArena from "./SovereignQuizArena";
 
 // Map section DOM element IDs to user-friendly legal names
 const SECTION_NAMES: Record<string, { title: string; desc: string }> = {
-  hero: { title: "Sovereign Sanctuary Portal", desc: "Initiated classified archive access" },
-  pillars: { title: "Foundational Pillars", desc: "Discovered the constitutional core safeguards" },
-  "impact-metrics": { title: "Campaign Impact Metrics", desc: "Analyzed citizen empowerment stats" },
-  "justice-shield": { title: "The Justice Shield Matrix", desc: "Unlocked codifications & statute handbook" },
-  evidence: { title: "Vault Evidence Folders", desc: "Revealed administrative compliance reports" },
-  timeline: { title: "Active Campaign Roadmap", desc: "Synchronized milestone coordinates" },
-  "constitutional-network": { title: "Digital Constitutional Network", desc: "Mapped global sovereign connections" },
-  "social-feed": { title: "Legal Dispatches Stream", desc: "Connected to front-line communications" },
-  blog: { title: "Classified Intel Archives", desc: "Decrypted detailed citizen handbooks" },
-  newsletter: { title: "Covenant Dispatch Subscription", desc: "Integrated with sovereign newsletter" }
+  hero: { title: "Sanctuary Ingress Portal", desc: "Initiated classified archive access" },
+  pillars: { title: "Sovereign Core Axioms", desc: "Discovered the constitutional core safeguards" },
+  "impact-metrics": { title: "Civic Empowerment Ledger", desc: "Analyzed citizen empowerment stats" },
+  "justice-shield": { title: "Jurisprudential Shield Matrix", desc: "Unlocked codifications & statute handbook" },
+  evidence: { title: "Evidentiary Vault Board", desc: "Revealed administrative compliance reports" },
+  timeline: { title: "Sovereign Mobilization Roadmap", desc: "Synchronized milestone coordinates" },
+  "constitutional-network": { title: "Sovereign Alliance Grid", desc: "Mapped global sovereign connections" },
+  "social-feed": { title: "Frontline Dispatch Stream", desc: "Connected to front-line communications" },
+  blog: { title: "Decrypted Intel Dossiers", desc: "Decrypted detailed citizen handbooks" },
+  newsletter: { title: "Covenant Dispatch Protocols", desc: "Integrated with sovereign newsletter" }
 };
 
 // Detailed statutory records for each discoverable right
@@ -25,7 +26,7 @@ const SECTION_DETAILS: Record<string, {
   proceduralRights: string[];
 }> = {
   hero: {
-    title: "Sovereign Sanctuary Portal",
+    title: "Sanctuary Ingress Portal",
     subtitle: "Inviolable Personal Dominion & Freedom",
     codeReference: "Common Law Precedent & Magna Carta Art. 39",
     explanation: "This portal establishes the core claim of physical and sovereign integrity. Every individual possesses original jurisdictional sovereignty, protected from arbitrary administrative summons or color-of-law notices unless explicit bilateral consent is established.",
@@ -36,7 +37,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   pillars: {
-    title: "Foundational Pillars",
+    title: "Sovereign Core Axioms",
     subtitle: "The Three Pillars of Legal Self-Defense",
     codeReference: "Constitutional Safeguard - Absolute Natural Rights",
     explanation: "Understanding the distinction between Administrative Code, statutory legislation, and Common Law. The Pillars empower individuals to object to summary administrative decrees by asserting their status as a beneficiary of the trust, not the trustee.",
@@ -47,7 +48,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   "impact-metrics": {
-    title: "Campaign Impact Metrics",
+    title: "Civic Empowerment Ledger",
     subtitle: "Quantifying Citizen Empowerment & Defense",
     codeReference: "Public Records Act & Information Autonomy Regulations",
     explanation: "Tracks the growth of self-represented litigant success and administrative pushback. Demonstrates a scalable blueprint for communities to reclaim local councils and protect private property through structured judicial feedback loops.",
@@ -58,7 +59,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   "justice-shield": {
-    title: "The Justice Shield Matrix",
+    title: "Jurisprudential Shield Matrix",
     subtitle: "Codification & Statute Enforcement Safeguards",
     codeReference: "United States Code Title 42 Section 1983 & UCC 1-308",
     explanation: "Contains precise statutory scripts and administrative objection blueprints. It lists exactly how to sign documents under reserve of rights (without prejudice) so you do not waive your constitutional protections when forced to sign state instruments.",
@@ -69,7 +70,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   evidence: {
-    title: "Vault Evidence Folders",
+    title: "Evidentiary Vault Board",
     subtitle: "Classified Administrative Compliance Reports",
     codeReference: "Rules of Evidence & Administrative Procedure Acts",
     explanation: "The gathering and presenting of hard documentary proof. Highlights that administrative bodies operate on presumptions, which are destroyed the moment you formally demand written proof of claim and official delegation of authority.",
@@ -80,7 +81,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   timeline: {
-    title: "Active Campaign Roadmap",
+    title: "Sovereign Mobilization Roadmap",
     subtitle: "Chronology of Sovereign Milestones",
     codeReference: "Sovereign Action Plan & Civic Defense Roadmap",
     explanation: "Strategic milestones mapped out for total legal autonomy. From creating initial declarations to building sovereign physical hubs, this timeline establishes the framework for progressive community empowerment.",
@@ -91,7 +92,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   "constitutional-network": {
-    title: "Digital Constitutional Network",
+    title: "Sovereign Alliance Grid",
     subtitle: "Sovereign Node Peer-to-Peer Grid",
     codeReference: "First Amendment Right of Assembly & Cryptographic Association",
     explanation: "The connection matrix linking localized sovereign nodes. Bypasses centralized corporate channels using peer-to-peer communication tools and decentralized directories, establishing robust local emergency communications.",
@@ -102,7 +103,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   "social-feed": {
-    title: "Legal Dispatches Stream",
+    title: "Frontline Dispatch Stream",
     subtitle: "Frontline Sovereign Alerts & Communications",
     codeReference: "Freedom of Speech & Unfiltered Public Reporting",
     explanation: "Real-time feeds detailing local council overrides, code enforcement pushbacks, and operational victories. These updates build collective situational awareness for frontline legal self-defense.",
@@ -113,7 +114,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   blog: {
-    title: "Classified Intel Archives",
+    title: "Decrypted Intel Dossiers",
     subtitle: "In-Depth Administrative De-escalation Briefs",
     codeReference: "Decrypted Sovereign Jurisprudence & Treatises",
     explanation: "In-depth, peer-reviewed legal treatises written by experienced self-represented litigators. Guides readers step-by-step through administrative de-escalation, public auditing, and personal sovereignty filings.",
@@ -124,7 +125,7 @@ const SECTION_DETAILS: Record<string, {
     ]
   },
   newsletter: {
-    title: "Covenant Dispatch Subscription",
+    title: "Covenant Dispatch Protocols",
     subtitle: "Securing Permanent Sovereign Directives",
     codeReference: "Private Contractual Covenant & Protected Mailing list",
     explanation: "The ongoing line of security briefings, statutory defense toolkits, and template updates delivered directly to your private communication channel under non-disclosure protection.",
@@ -140,6 +141,8 @@ export default function FloatingScrollIndicator() {
   const { scrollYProgress } = useScroll();
   const [activeSection, setActiveSection] = useState<string>("hero");
   const [unlockedSections, setUnlockedSections] = useState<Set<string>>(new Set(["hero"]));
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [discoveryNotification, setDiscoveryNotification] = useState<{
     id: string;
     title: string;
@@ -243,6 +246,21 @@ export default function FloatingScrollIndicator() {
         className="fixed right-6 bottom-24 z-[400] hidden md:block select-none group font-sans"
         id="sovereign-hud-scroll"
       >
+        {/* Archives Toggle Button */}
+        <div className="absolute right-0 -top-8 flex items-center justify-center">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsArchiveOpen(!isArchiveOpen);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-black/95 border border-[#d4af37]/35 rounded-full text-[#d4af37] hover:text-white hover:border-[#ffd754] text-[8px] font-mono font-semibold uppercase tracking-widest cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.8)] backdrop-blur-md transition-all active:scale-95"
+            title="Open Discovered Safeguards"
+          >
+            <BookOpen className="w-2.5 h-2.5 animate-pulse" />
+            Vault ({unlockedSections.size}/10)
+          </button>
+        </div>
+
         {/* Tooltip on Hover showing the current active sovereign section */}
         <div className="absolute right-14 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 mr-2 whitespace-nowrap">
           <div className="bg-[#001233]/95 border border-[#d4af37]/45 shadow-[0_0_15px_rgba(212,175,55,0.25)] rounded-sm px-3 py-1.5 backdrop-blur-md">
@@ -252,7 +270,7 @@ export default function FloatingScrollIndicator() {
           </div>
         </div>
 
-        {/* Small Glowing Sword Container */}
+        {/* Compact Glowing Sovereign Aegis Crest */}
         <div 
           onClick={() => {
             const details = SECTION_DETAILS[activeSection];
@@ -260,83 +278,22 @@ export default function FloatingScrollIndicator() {
               setSelectedDetail(details);
             }
           }}
-          className="w-12 h-16 flex items-center justify-center bg-black/90 border border-[#d4af37]/20 rounded-sm p-1.5 shadow-[0_4px_25px_rgba(0,0,0,0.9)] backdrop-blur-md hover:border-[#d4af37]/65 hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] transition-all duration-300 cursor-pointer active:scale-95"
+          className="w-14 h-18 flex items-center justify-center bg-black/95 border border-[#d4af37]/30 rounded-sm p-2 shadow-[0_8px_30px_rgba(0,0,0,0.95)] backdrop-blur-md hover:border-[#ffd754]/85 hover:shadow-[0_0_22px_rgba(212,175,55,0.45)] transition-all duration-300 cursor-pointer active:scale-95 animate-fade-in"
         >
-          <svg viewBox="0 0 100 120" className="w-full h-full text-gray-800" fill="none">
+          <svg viewBox="0 0 100 110" className="w-full h-full overflow-visible" fill="none">
             <defs>
-              {/* Dynamic clip path for filling the blade from top to bottom */}
-              <clipPath id="sword-fill-clip">
-                <rect x="0" y="0" width="100" height={15 + (70 * (scrollPercent / 100))} />
-              </clipPath>
               {/* Gold glow filter */}
-              <filter id="sword-glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="2.5" result="blur" />
+              <filter id="aegis-glow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
-            </defs>
 
-            {/* 1. THE SWORD UNLIT SHADOW / UNDERLAY */}
-            <g className="opacity-40">
-              {/* Blade underlay */}
-              <path 
-                d="M45 85 L47 25 L50 10 L53 25 L55 85 Z" 
-                fill="#1e293b" 
-                stroke="#475569" 
-                strokeWidth="1.5"
-                strokeLinejoin="miter"
-              />
-              {/* Center fuller/ridge line */}
-              <line x1="50" y1="18" x2="50" y2="84" stroke="#475569" strokeWidth="1" />
-              {/* Crossguard */}
-              <path d="M32 85 L68 85 L50 89 Z" fill="#334155" stroke="#475569" strokeWidth="1" />
-              {/* Handle/Grip */}
-              <rect x="47" y="89" width="6" height="18" rx="1" fill="#1e293b" stroke="#475569" strokeWidth="1" />
-              {/* Pommel */}
-              <circle cx="50" cy="110" r="4.5" fill="#334155" stroke="#475569" strokeWidth="1" />
-            </g>
-
-            {/* 2. THE GLOWING GOLD SWORD OVERLAY (CLIPPED) */}
-            <g clipPath="url(#sword-fill-clip)" filter="url(#sword-glow)">
-              {/* Golden glowing blade */}
-              <path 
-                d="M45 85 L47 25 L50 10 L53 25 L55 85 Z" 
-                fill="url(#goldGradient)" 
-                stroke="#ffd754" 
-                strokeWidth="1.8"
-                strokeLinejoin="miter"
-                style={{ filter: "drop-shadow(0 0 4px rgba(212,175,55,0.8))" }}
-              />
-              {/* Glowing center ridge */}
-              <line 
-                x1="50" 
-                y1="15" 
-                x2="50" 
-                y2="84" 
-                stroke="#ffffff" 
-                strokeWidth="1.2" 
-                strokeLinecap="round" 
-                opacity="0.9"
-              />
-              {/* Crossguard glowing gold */}
-              <path d="M32 85 L68 85 L50 89 Z" fill="#d4af37" stroke="#ffd754" strokeWidth="1.2" />
-              {/* Handle glowing details */}
-              <rect x="47" y="89" width="6" height="18" rx="1" fill="#9a3412" stroke="#d4af37" strokeWidth="1" />
-              {/* Golden Pommel */}
-              <circle cx="50" cy="110" r="4.5" fill="#d4af37" stroke="#ffd754" strokeWidth="1.2" />
-            </g>
-
-            {/* Extra glowing energy sparks around the tip if fully completed */}
-            {scrollPercent > 98 && (
-              <g className="animate-pulse">
-                <circle cx="50" cy="8" r="1.5" fill="#ffffff" />
-                <circle cx="43" cy="15" r="1" fill="#ffd754" />
-                <circle cx="57" cy="15" r="1" fill="#ffd754" />
-              </g>
-            )}
-
-            {/* Standard SVG Gradients */}
-            <defs>
-              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              {/* Dynamic scroll clip-path for filling the shield from bottom to top */}
+              <clipPath id="shield-fill-clip">
+                <rect x="0" y={15 + (85 * (1 - scrollPercent / 100))} width="100" height="100" />
+              </clipPath>
+              
+              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#b89423" />
                 <stop offset="35%" stopColor="#ffd754" />
                 <stop offset="50%" stopColor="#ffffff" />
@@ -344,6 +301,97 @@ export default function FloatingScrollIndicator() {
                 <stop offset="100%" stopColor="#b89423" />
               </linearGradient>
             </defs>
+
+            {/* Concentric rotating holographic runes in the background */}
+            <motion.g 
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
+              className="origin-[50px_55px] opacity-25 group-hover:opacity-60"
+            >
+              <circle cx="50" cy="55" r="44" stroke="#d4af37" strokeWidth="0.75" strokeDasharray="4,4" />
+              <circle cx="50" cy="55" r="37" stroke="#ffd754" strokeWidth="0.5" strokeDasharray="8,3" />
+              {/* Outer compass marks */}
+              <path d="M50 8 L50 14 M50 96 L50 102 M8 55 L14 55 M96 55 L102 55" stroke="#d4af37" strokeWidth="1" />
+            </motion.g>
+
+            <motion.g
+              animate={{ rotate: -360 }}
+              transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
+              className="origin-[50px_55px] opacity-20 group-hover:opacity-45"
+            >
+              <circle cx="50" cy="55" r="30" stroke="#d4af37" strokeWidth="0.5" strokeDasharray="3,6" />
+            </motion.g>
+
+            {/* 1. SHIELD BASE UNDERLAY (Unlit Dark Slate Metal) */}
+            <g className="opacity-40">
+              <path 
+                d="M50 15 C68 15, 82 20, 82 28 C82 58, 68 85, 50 100 C32 85, 18 58, 18 28 C18 20, 32 15, 50 15 Z" 
+                fill="#111827" 
+                stroke="#475569" 
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              {/* Internal decorative dividing line */}
+              <path d="M50 15 L50 98" stroke="#334155" strokeWidth="1" strokeDasharray="3,3" />
+            </g>
+
+            {/* 2. THE GLOWING GOLD SHIELD OVERLAY (CLIPPED BY SCROLL PROGRESS) */}
+            <g clipPath="url(#shield-fill-clip)" filter="url(#aegis-glow)">
+              <path 
+                d="M50 15 C68 15, 82 20, 82 28 C82 58, 68 85, 50 100 C32 85, 18 58, 18 28 C18 20, 32 15, 50 15 Z" 
+                fill="url(#goldGradient)" 
+                stroke="#ffd754" 
+                strokeWidth="2"
+                strokeLinejoin="round"
+                style={{ filter: "drop-shadow(0 0 8px rgba(212,175,55,0.9))" }}
+              />
+
+              {/* Grid-lines on the glowing shield representing civic structure */}
+              <g stroke="#ffffff" strokeWidth="0.5" opacity="0.4">
+                <path d="M30 40 L70 40" />
+                <path d="M24 60 L76 60" />
+                <path d="M30 80 L70 80" />
+              </g>
+
+              {/* Center glowing white spine */}
+              <path d="M50 15 L50 98" stroke="#ffffff" strokeWidth="1.5" opacity="0.9" />
+
+              {/* Glowing star in center of Aegis */}
+              <g className="animate-pulse" style={{ animationDuration: "1.5s" }}>
+                <path 
+                  d="M50 35 L52 45 L62 47 L52 49 L50 59 L48 49 L38 47 L48 45 Z" 
+                  fill="#ffffff" 
+                  style={{ filter: "drop-shadow(0 0 4px #ffffff)" }} 
+                />
+              </g>
+
+              {/* Delicate Balance Scales emblem at bottom of Aegis */}
+              <g stroke="#ffffff" strokeWidth="1" fill="none" opacity="0.9" transform="translate(0, 12)">
+                <line x1="38" y1="58" x2="62" y2="58" strokeWidth="1.5" /> {/* scale beam */}
+                <line x1="50" y1="52" x2="50" y2="68" strokeWidth="2" /> {/* pillar */}
+                <line x1="38" y1="58" x2="38" y2="64" /> {/* left chain */}
+                <line x1="62" y1="58" x2="62" y2="64" /> {/* right chain */}
+                <path d="M34 64 C34 67, 42 67, 42 64 Z" fill="#ffffff" /> {/* left pan */}
+                <path d="M58 64 C58 67, 66 67, 66 64 Z" fill="#ffffff" /> {/* right pan */}
+                <path d="M46 68 L54 68" strokeWidth="2" /> {/* base */}
+              </g>
+            </g>
+
+            {/* Glowing energy sparks around Aegis on hover */}
+            <g className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <circle cx="20" cy="30" r="1.2" fill="#ffd754" className="animate-ping" style={{ animationDuration: "1.2s" }} />
+              <circle cx="80" cy="45" r="1.5" fill="#ffffff" className="animate-ping" style={{ animationDuration: "1.8s" }} />
+              <circle cx="25" cy="75" r="1" fill="#ffd754" className="animate-pulse" />
+              <circle cx="75" cy="85" r="1.3" fill="#ffd754" className="animate-pulse" style={{ animationDuration: "1.4s" }} />
+            </g>
+
+            {/* Ultimate fully-charged celestial shield flash effect at 100% completion */}
+            {scrollPercent > 98 && (
+              <g className="animate-bounce">
+                <circle cx="50" cy="15" r="2.5" fill="#ffffff" style={{ filter: "drop-shadow(0 0 5px #ffffff)" }} />
+                <path d="M50 10 L52 14 L56 15 L52 16 L50 20 L48 16 L44 15 L48 14 Z" fill="#ffffff" />
+              </g>
+            )}
           </svg>
         </div>
       </motion.div>
@@ -500,6 +548,107 @@ export default function FloatingScrollIndicator() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* SOVEREIGN VAULT ARCHIVES SIDE DRAWER */}
+      <AnimatePresence>
+        {isArchiveOpen && (
+          <div className="fixed right-6 bottom-44 z-[390] w-72 max-h-[50vh] flex flex-col">
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="bg-[#000a1a]/95 border-2 border-[#d4af37]/55 shadow-[0_10px_40px_rgba(0,0,0,0.95)] rounded-sm p-4 backdrop-blur-md flex flex-col overflow-hidden max-h-full"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#d4af37]/20 mb-3">
+                <div className="flex items-center gap-1.5 text-[#d4af37]">
+                  <Shield className="w-4 h-4 animate-pulse" />
+                  <span className="font-mono text-[9px] uppercase tracking-[0.2em] font-bold">Constitutional Vault</span>
+                </div>
+                <button 
+                  onClick={() => setIsArchiveOpen(false)}
+                  className="p-1 text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
+                  title="Close Vault Drawer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Scrollable list of safeguards */}
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar max-h-[30vh]">
+                {Object.entries(SECTION_NAMES).map(([key, info]) => {
+                  const isUnlocked = unlockedSections.has(key);
+                  return (
+                    <div 
+                      key={key}
+                      onClick={() => {
+                        if (isUnlocked) {
+                          const details = SECTION_DETAILS[key];
+                          if (details) {
+                            setSelectedDetail(details);
+                          }
+                        }
+                      }}
+                      className={`p-2 border rounded-sm text-left transition-all ${
+                        isUnlocked 
+                          ? "bg-[#001233]/40 border-[#d4af37]/30 hover:border-[#ffd754] hover:bg-[#001233]/80 cursor-pointer" 
+                          : "bg-black/30 border-gray-800/40 opacity-50 cursor-not-allowed select-none"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-serif text-[11px] font-bold text-white tracking-wide truncate max-w-[180px]">
+                          {info.title}
+                        </span>
+                        {isUnlocked ? (
+                          <span className="font-mono text-[6px] bg-[#d4af37]/15 text-[#d4af37] border border-[#d4af37]/30 px-1 py-0.5 rounded-sm font-bold uppercase tracking-wider">
+                            Unlocked
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[6px] bg-gray-800/20 text-gray-500 border border-gray-800 px-1 py-0.5 rounded-sm font-bold uppercase tracking-wider">
+                            Locked
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[9px] text-gray-400 mt-0.5 truncate font-sans font-light">
+                        {isUnlocked ? info.desc : "Scroll down application page to unlock & decrypt"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Sovereign Trial Quiz Arena CTA */}
+              <div className="mt-2 relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsQuizOpen(true);
+                  }}
+                  className="w-full text-center py-1.5 bg-gradient-to-r from-[#d4af37]/15 to-[#d4af37]/35 hover:from-[#d4af37] hover:to-[#ffd754] text-[#d4af37] hover:text-[#001233] text-[9px] uppercase font-mono font-extrabold rounded-sm border border-[#d4af37]/40 transition-all cursor-pointer shadow-md tracking-widest flex items-center justify-center gap-1.5"
+                >
+                  <Award className="w-3.5 h-3.5 animate-bounce" /> Enter Trial Arena
+                </button>
+              </div>
+
+              {/* Progress counter */}
+              <div className="mt-3 pt-2.5 border-t border-[#d4af37]/10 flex items-center justify-between font-mono text-[8px] text-gray-400">
+                <span>PROGRESS:</span>
+                <span className="text-[#d4af37] font-bold">
+                  {unlockedSections.size} / 10 SECURED
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Sovereign Trial Quiz Arena Modal */}
+      <SovereignQuizArena
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        unlockedSections={unlockedSections}
+      />
     </>
   );
 }

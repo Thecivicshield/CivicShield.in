@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { GoogleGenAI } from "@google/genai";
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, doc, setDoc, getDoc, Firestore } from "firebase/firestore";
+import { initializeFirestore, doc, setDoc, getDoc, Firestore, setLogLevel } from "firebase/firestore";
 import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog } from "./src/types";
 
 const app = express();
@@ -309,6 +309,9 @@ const initialData: CivicShieldData = {
 // Initialize Firebase
 let firestore: Firestore | null = null;
 try {
+  // Silent the internal logs of the Firebase Web SDK to prevent benign gRPC stream cancellation messages in Node.js
+  setLogLevel("silent");
+
   const CONFIG_FILE_PATH = path.join(process.cwd(), "firebase-applet-config.json");
   let firebaseConfig: any = {
     projectId: "yodeling-bongo-ks6r9",

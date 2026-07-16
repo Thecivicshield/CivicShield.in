@@ -120,13 +120,20 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
   };
 
   const navLinks = [
-    { name: "Core Pillars", href: "#pillars", targetId: "pillars" },
-    { name: "Milestones", href: "#impact-metrics", targetId: "impact-metrics" },
+    { name: "Sovereign Axioms", href: "#pillars", targetId: "pillars" },
+    { name: "Empowerment Ledger", href: "#impact-metrics", targetId: "impact-metrics" },
     { name: "Justice Shield", href: "#justice-shield", targetId: "justice-shield" },
-    { name: "Evidence Board", href: "#evidence", targetId: "evidence" },
-    { name: "Blog", href: "#blog", targetId: "blog" },
-    { name: "Roadmap", href: "#timeline", targetId: "timeline" }
+    { name: "Evidentiary Vault", href: "#evidence", targetId: "evidence" },
+    { name: "Decrypted Briefs", href: "#blog", targetId: "blog" },
+    { name: "Mobilization Roadmap", href: "#timeline", targetId: "timeline" }
   ];
+
+  const handleNavClick = (e: React.MouseEvent, targetId: string, label: string) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
+      detail: { targetId, label }
+    }));
+  };
 
   return (
     <motion.header 
@@ -168,6 +175,7 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
               <a 
                 key={link.name}
                 href={link.href} 
+                onClick={(e) => handleNavClick(e, link.targetId, link.name)}
                 className={`relative text-[11px] font-bold tracking-wider uppercase h-full flex items-center transition-colors duration-300 ${
                   isActive ? "text-[#d4af37]" : "text-gray-300 hover:text-white"
                 }`}
@@ -255,7 +263,10 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
                   <motion.a
                     key={link.name}
                     href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleNavClick(e, link.targetId, link.name);
+                    }}
                     initial={{ opacity: 0, x: -15 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.05 }}

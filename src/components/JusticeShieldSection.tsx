@@ -3,6 +3,60 @@ import { Scale, HeartHandshake, FileText, Gavel, BookOpen, AlertCircle, CheckCir
 import { motion, AnimatePresence } from "motion/react";
 import { Statute } from "../types";
 
+export const playSynthSound = (type: "shatter" | "success" | "click" | "powerup") => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    
+    if (type === "shatter") {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(180, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.4);
+      
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } else if (type === "success") {
+      const now = ctx.currentTime;
+      const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.08, now + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.6);
+      });
+    } else if (type === "click") {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      osc.frequency.setValueAtTime(400, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    }
+  } catch (err) {
+    console.warn("Audio Context not supported or allowed", err);
+  }
+};
+
 interface LawCard {
   title: string;
   subtitle: string;
@@ -296,6 +350,7 @@ export default function JusticeShieldSection({
   const [activeLawIndex, setActiveLawIndex] = useState<number>(0);
   const [quizAnswers, setQuizAnswers] = useState<{ [key: number]: boolean }>({});
   const [revealedQuiz, setRevealedQuiz] = useState<{ [key: number]: boolean }>({});
+  const [crackingIndices, setCrackingIndices] = useState<{ [key: number]: boolean }>({});
   const [isEditingActiveLaw, setIsEditingActiveLaw] = useState(false);
   const [editingMythIndex, setEditingMythIndex] = useState<number | null>(null);
 
@@ -448,7 +503,7 @@ export default function JusticeShieldSection({
             <BookOpen className="w-3.5 h-3.5" /> Civic Shield Educational Hub
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white mb-2">
-            The Justice <span className="text-[#d4af37] font-serif not-italic">Shield</span>
+            The Jurisprudential <span className="text-[#d4af37] font-serif not-italic font-bold">Shield Matrix</span>
           </h2>
           <p className="text-[10px] font-mono text-[#d4af37]/75 uppercase tracking-[0.25em]">
             Bridging Civic Advocacy, Eliminating Fear, Securing Procedural Integrity
@@ -1347,7 +1402,8 @@ export default function JusticeShieldSection({
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
+                animate={crackingIndices[idx] ? { x: [-5, 5, -5, 5, -2, 2, 0], y: [-2, 2, -2, 2, -1, 1, 0] } : {}}
+                transition={crackingIndices[idx] ? { duration: 0.4 } : { duration: 0.5, delay: idx * 0.08 }}
                 whileHover={{ y: -4, scale: 1.01, boxShadow: "0 15px 30px -10px rgba(212,175,55,0.08)" }}
                 className="relative min-h-[290px] bg-[#001a4d]/90 border border-[#d4af37]/15 rounded-sm overflow-hidden flex flex-col justify-between"
               >
@@ -1443,137 +1499,123 @@ export default function JusticeShieldSection({
                       )}
                     </AnimatePresence>
 
-                    {/* Shards overlay that cracks and flies apart */}
+                    {/* Classy verification scanline and blur transition overlay */}
                     <AnimatePresence>
                       {!revealedQuiz[idx] && (
                         <motion.div 
-                          exit={{ opacity: 0 }}
+                          exit={{ 
+                            opacity: 0,
+                            scale: 0.96,
+                            filter: "blur(6px)",
+                            transition: { duration: 0.5, ease: "easeInOut" }
+                          }}
                           className="absolute inset-0 z-10 bg-transparent"
                         >
-                          <div className="relative w-full h-full">
-                            {/* Left Shard */}
-                            <motion.div
-                              initial={{ x: 0, rotate: 0, opacity: 1 }}
-                              exit={{ x: "-150%", rotate: -15, opacity: 0 }}
-                              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
-                              style={{ clipPath: "polygon(0 0, 55% 0, 45% 100%, 0 100%)" }}
-                              className="absolute inset-0 bg-[#001a4d] p-5 flex flex-col justify-between border-r border-[#d4af37]/10 rounded-sm select-none"
-                            >
-                              <div className="space-y-3 relative group text-left h-full flex flex-col justify-between pb-10">
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-mono font-bold text-red-400 bg-red-950/20 border border-red-500/10 py-0.5 px-2 rounded-sm inline-block uppercase">
-                                      Misconception {idx + 1}
-                                    </span>
-                                    
-                                    {isAdmin && onUpdateMyths && (
-                                      <div className="flex items-center gap-1.5 text-[9px] z-30">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingMythIndex(idx);
-                                          }}
-                                          className="font-mono text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
-                                          title="Edit Mythbuster details"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (confirm(`Permanently remove Misconception #${idx+1}?`)) {
-                                              onUpdateMyths(myths.filter((_, mIdx) => mIdx !== idx));
-                                            }
-                                          }}
-                                          className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer transition-colors"
-                                          title="Delete this misconception"
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <p className="text-xs font-serif font-semibold text-white leading-relaxed">
-                                    {myth.question}
-                                  </p>
-                                  <p className="text-[10px] font-mono text-gray-400 italic leading-relaxed">
-                                    {myth.myth}
-                                  </p>
-                                </div>
-                              </div>
-                            </motion.div>
+                          <div 
+                            onClick={() => {
+                              if (crackingIndices[idx]) return; // prevent duplicate clicks
+                              
+                              // Play clean interactive sound
+                              playSynthSound("click");
+                              
+                              // Start decryption / scanline animation
+                              setCrackingIndices(p => ({ ...p, [idx]: true }));
+                              
+                              // After 650ms scanning, reveal the truth underlay
+                              setTimeout(() => {
+                                setRevealedQuiz(p => ({ ...p, [idx]: true }));
+                                setCrackingIndices(p => ({ ...p, [idx]: false }));
+                                playSynthSound("success");
+                              }, 650);
 
-                            {/* Right Shard */}
-                            <motion.div
-                              initial={{ x: 0, rotate: 0, opacity: 1 }}
-                              exit={{ x: "150%", rotate: 15, opacity: 0 }}
-                              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
-                              style={{ clipPath: "polygon(55% 0, 100% 0, 100% 100%, 45% 100%)" }}
-                              className="absolute inset-0 bg-[#001a4d] p-5 flex flex-col justify-between border-l border-[#d4af37]/10 rounded-sm select-none"
-                            >
-                              <div className="space-y-3 relative group text-left h-full flex flex-col justify-between pb-10">
-                                <div className="space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-mono font-bold text-red-400 bg-red-950/20 border border-red-500/10 py-0.5 px-2 rounded-sm inline-block uppercase">
-                                      Misconception {idx + 1}
-                                    </span>
-                                    
-                                    {isAdmin && onUpdateMyths && (
-                                      <div className="flex items-center gap-1.5 text-[9px] z-30">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingMythIndex(idx);
-                                          }}
-                                          className="font-mono text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
-                                          title="Edit Mythbuster details"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (confirm(`Permanently remove Misconception #${idx+1}?`)) {
-                                              onUpdateMyths(myths.filter((_, mIdx) => mIdx !== idx));
-                                            }
-                                          }}
-                                          className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer transition-colors"
-                                          title="Delete this misconception"
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <p className="text-xs font-serif font-semibold text-white leading-relaxed">
-                                    {myth.question}
-                                  </p>
-                                  <p className="text-[10px] font-mono text-gray-400 italic leading-relaxed">
-                                    {myth.myth}
-                                  </p>
+                              try {
+                                window.dispatchEvent(new CustomEvent("unlock-achievement", {
+                                  detail: {
+                                    id: "myth-busted",
+                                    title: "Legal Myth Busted",
+                                    description: "You exposed a common administrative misconception and unlocked the statutory truth.",
+                                    category: "myth"
+                                  }
+                                }));
+                              } catch (e) {}
+                            }}
+                            className="relative w-full h-full overflow-hidden cursor-pointer bg-[#001a4d] border border-[#d4af37]/20 hover:border-[#d4af37]/60 p-5 flex flex-col justify-between rounded-sm select-none transition-colors duration-300 shadow-[inset_0_0_15px_rgba(212,175,55,0.05)]"
+                          >
+                            <div className="space-y-3 relative group text-left h-full flex flex-col justify-between pb-10 z-10">
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] font-mono font-bold text-red-400 bg-red-950/20 border border-red-500/10 py-0.5 px-2 rounded-sm inline-block uppercase tracking-wider">
+                                    Misconception {idx + 1}
+                                  </span>
+                                  
+                                  {isAdmin && onUpdateMyths && (
+                                    <div className="flex items-center gap-1.5 text-[9px] z-30">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEditingMythIndex(idx);
+                                        }}
+                                        className="font-mono text-gray-400 hover:text-[#d4af37] transition-colors cursor-pointer"
+                                        title="Edit Mythbuster details"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (confirm(`Permanently remove Misconception #${idx+1}?`)) {
+                                            onUpdateMyths(myths.filter((_, mIdx) => mIdx !== idx));
+                                          }
+                                        }}
+                                        className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer transition-colors"
+                                        title="Delete this misconception"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
+                                <p className="text-sm font-serif font-semibold text-white leading-relaxed tracking-wide">
+                                  {myth.question}
+                                </p>
+                                <p className="text-xs font-mono text-gray-300 italic leading-relaxed border-l-2 border-red-500/30 pl-2">
+                                  {myth.myth}
+                                </p>
                               </div>
-                            </motion.div>
+                            </div>
 
-                            {/* Trigger Button Overlay */}
+                            {/* Classy gold laser scanner bar that glides down on click */}
+                            {crackingIndices[idx] && (
+                              <motion.div
+                                initial={{ top: "0%" }}
+                                animate={{ top: "100%" }}
+                                transition={{ duration: 0.65, ease: "easeInOut" }}
+                                className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#ffd754] to-transparent shadow-[0_0_12px_#ffd754] z-40 pointer-events-none"
+                              />
+                            )}
+
+                            {/* Subtle particle shimmer rising while processing */}
+                            {crackingIndices[idx] && (
+                              <div className="absolute inset-0 z-30 overflow-hidden pointer-events-none bg-[#d4af37]/5">
+                                {Array.from({ length: 8 }).map((_, pIdx) => (
+                                  <motion.div
+                                    key={pIdx}
+                                    initial={{ y: "110%", x: Math.random() * 100 + "%", scale: 0.8, opacity: 0.8 }}
+                                    animate={{ y: "-10%", scale: 1.5, opacity: 0 }}
+                                    transition={{ duration: 0.6, delay: pIdx * 0.05, ease: "easeOut" }}
+                                    className="absolute w-1 h-1 rounded-full bg-[#ffd754]"
+                                    style={{ boxShadow: "0 0 6px #ffd754" }}
+                                  />
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Elegant Trigger CTA Button */}
                             <div className="absolute bottom-5 left-5 right-5 z-20">
                               <button
-                                onClick={() => {
-                                  setRevealedQuiz(p => ({ ...p, [idx]: true }));
-                                  try {
-                                    window.dispatchEvent(new CustomEvent("unlock-achievement", {
-                                      detail: {
-                                        id: "myth-busted",
-                                        title: "Legal Myth Busted",
-                                        description: "You exposed a common administrative misconception and unlocked the statutory truth.",
-                                        category: "myth"
-                                      }
-                                    }));
-                                  } catch (e) {}
-                                }}
-                                className="w-full text-center py-2.5 bg-[#d4af37]/10 hover:bg-[#d4af37] text-[#d4af37] hover:text-[#001233] text-[10px] uppercase font-mono font-bold rounded-sm border border-[#d4af37]/35 transition-all cursor-pointer shadow-md"
+                                className="w-full text-center py-2 bg-gradient-to-r from-[#d4af37]/10 to-[#d4af37]/20 hover:from-[#d4af37] hover:to-[#ffd754] text-[#d4af37] hover:text-[#001233] text-[10px] uppercase font-mono font-bold rounded-sm border border-[#d4af37]/35 transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                               >
-                                Expose Legal Reality
+                                <Sparkles className="w-3.5 h-3.5" /> DECRYPT LEGAL REALITY
                               </button>
                             </div>
                           </div>

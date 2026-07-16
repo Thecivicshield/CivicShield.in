@@ -58,7 +58,7 @@ export default function BlogSection({ posts, onAddComment, onDeleteComment, isAd
               <Sparkles className="w-3.5 h-3.5" /> Direct Campaign Journalism
             </div>
             <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white">
-              Latest Campaign <span className="text-[#d4af37] font-serif not-italic">Dispatches</span>
+              Decrypted <span className="text-[#d4af37] font-serif not-italic font-bold">Intel Dossiers</span>
             </h2>
             <p className="mt-2 text-gray-200 text-sm max-w-2xl leading-relaxed font-light">
               We log daily developer maps, legal inquiries, public hearings, and local ecology developments here. Direct accountability updates from the front lines.

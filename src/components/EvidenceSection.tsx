@@ -5,6 +5,8 @@ import { EvidenceItem } from "../types";
 import SocialShare from "./SocialShare";
 import InteractiveLawCard from "./InteractiveLawCard";
 import EvidenceFolderView from "./EvidenceFolderView";
+import HolographicVerifiedBadge from "./HolographicVerifiedBadge";
+import EvidenceDetailsModal from "./EvidenceDetailsModal";
 
 const isYouTubeUrl = (url: string) => {
   return url.includes("youtube.com") || url.includes("youtu.be");
@@ -40,6 +42,7 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingPdf, setViewingPdf] = useState<EvidenceItem | null>(null);
   const [viewingVideo, setViewingVideo] = useState<EvidenceItem | null>(null);
+  const [selectedDetailsItem, setSelectedDetailsItem] = useState<EvidenceItem | null>(null);
 
   // Filter items
   const filteredItems = evidence.filter(item => {
@@ -105,7 +108,7 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
             <Database className="w-3.5 h-3.5" /> Defense Resource Locker
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white">
-            Uncompromising <span className="text-[#d4af37] font-serif not-italic">Documentation</span>
+            The Evidentiary <span className="text-[#d4af37] font-serif not-italic font-bold">Vault Board</span>
           </h2>
           <p className="mt-4 text-gray-200 text-sm leading-relaxed max-w-xl mx-auto font-light">
             All handbooks, legal filing templates, and de-escalation guides are archived transparently. We rely on verified constitutional facts and administrative rules to empower you.
@@ -118,7 +121,7 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-[#001233]/90 p-4 rounded-sm border border-[#d4af37]/20"
+          className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-8 bg-[#001233]/90 p-5 rounded-sm border border-[#d4af37]/35 shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
         >
           {/* Tabs */}
           <div className="flex flex-wrap items-center gap-2">
@@ -126,10 +129,10 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-sm text-xs font-bold tracking-wider uppercase transition-all duration-200 cursor-pointer ${
+                className={`px-4 py-2 rounded-sm text-xs font-bold tracking-widest uppercase transition-all duration-200 cursor-pointer ${
                   activeFilter === filter 
-                    ? 'bg-[#d4af37] text-[#001a4d] shadow-md' 
-                    : 'bg-[#002366]/60 text-gray-300 hover:text-[#d4af37]'
+                    ? 'bg-[#d4af37] text-[#001a4d] font-extrabold shadow-[0_0_15px_rgba(212,175,55,0.35)]' 
+                    : 'bg-[#002366]/60 text-gray-300 hover:text-[#d4af37] hover:bg-[#002366] border border-[#d4af37]/10'
                 }`}
               >
                 {filter === 'all' ? 'All Records' : filter.toUpperCase() + 's'}
@@ -137,16 +140,40 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
             ))}
           </div>
 
-          {/* Search bar */}
-          <div className="relative w-full md:w-80">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search evidence index..."
-              className="w-full pl-10 pr-4 py-2 text-xs rounded-sm border border-[#d4af37]/35 bg-[#002366] text-white placeholder-gray-400 focus:outline-none focus:border-[#d4af37]"
-            />
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+          {/* Robust Search interface & Results feedback */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto flex-1 max-w-xl md:justify-end">
+            {/* Real-time Result Statistics */}
+            <div className="flex items-center gap-2 font-mono text-[9px] text-gray-400 self-center md:self-auto bg-[#001a4d]/60 px-3 py-2 rounded-sm border border-[#d4af37]/10">
+              <span className="text-[#d4af37] font-bold">{filteredItems.length}</span> 
+              <span>OF</span> 
+              <span>{evidence.length}</span> 
+              <span>MATCHED</span>
+              {searchQuery && (
+                <span className="inline-flex w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping ml-1" />
+              )}
+            </div>
+
+            <div className="relative flex-1 max-w-sm">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search resources, agencies, keywords..."
+                className="w-full pl-10 pr-10 py-2.5 text-xs rounded-sm border border-[#d4af37]/35 bg-[#002366] text-white placeholder-gray-400 focus:outline-none focus:border-[#ffd754] focus:ring-1 focus:ring-[#ffd754]/30 transition-all shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]"
+              />
+              <Search className={`absolute left-3 top-3 w-4 h-4 transition-colors ${searchQuery ? 'text-[#ffd754]' : 'text-gray-400'}`} />
+              
+              {/* Reset button */}
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-2.5 p-0.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Clear search query"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
 
@@ -172,7 +199,12 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
                   <div className="space-y-4">
                     {/* Header info */}
                     <div className="flex items-center justify-between">
-                      {getIcon(item.type)}
+                      <div className="flex items-center gap-2">
+                        {getIcon(item.type)}
+                        {item.verifiedBy && (
+                          <HolographicVerifiedBadge verifiedBy={item.verifiedBy} compact={true} />
+                        )}
+                      </div>
                       <span className="text-[10px] uppercase font-mono tracking-widest text-[#D4AF37] bg-[#d4af37]/10 px-2 py-0.5 rounded-sm border border-[#d4af37]/10">
                         {item.fileSize}
                       </span>
@@ -211,11 +243,26 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleOpenDoc(item)}
-                        className="flex-1 py-2 bg-[#002366]/40 hover:bg-[#d4af37] hover:text-[#001233] text-[#d4af37] rounded-sm text-[11px] font-bold tracking-wider uppercase border border-[#d4af37]/20 hover:border-transparent transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        onClick={() => {
+                          setSelectedDetailsItem(item);
+                          // Trigger achievement for opening a legal document
+                          try {
+                            window.dispatchEvent(new CustomEvent("unlock-achievement", {
+                              detail: {
+                                id: "first-doc",
+                                title: "First Evidence Opened",
+                                description: "You unsealed a verified case file document from the Resource Locker.",
+                                category: "read"
+                              }
+                            }));
+                          } catch (e) {
+                            console.warn("Achievement trigger error:", e);
+                          }
+                        }}
+                        className="flex-1 py-2 bg-[#002366]/40 hover:bg-[#d4af37] hover:text-[#001233] text-[#d4af37] rounded-sm text-[11px] font-extrabold tracking-widest uppercase border border-[#d4af37]/25 hover:border-transparent transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>Preview</span>
+                        <span>View Details</span>
                       </button>
                       <a
                         href={item.fileUrl}
@@ -328,6 +375,13 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Glassmorphic View Details and Metadata Hub */}
+      <EvidenceDetailsModal
+        isOpen={!!selectedDetailsItem}
+        item={selectedDetailsItem}
+        onClose={() => setSelectedDetailsItem(null)}
+      />
     </motion.section>
   );
 }

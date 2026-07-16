@@ -70,7 +70,7 @@ export default function SocialFeedSection({ posts, isAdmin, onAddPost, onDeleteP
             <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Live Social Feed
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white">
-            Civic Shield <span className="text-[#d4af37] font-serif not-italic">Broadcast Network</span>
+            Frontline Dispatch <span className="text-[#d4af37] font-serif not-italic font-bold">Broadcast Network</span>
           </h2>
           <p className="mt-4 text-gray-200 text-sm leading-relaxed max-w-xl mx-auto font-light">
             Stay aligned with our primary social broadcast accounts. Real-time community alerts, basic legal guides, and transparency bulletins compiled in one single hub.

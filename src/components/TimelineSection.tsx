@@ -125,7 +125,7 @@ export default function TimelineSection({
             <Compass className="w-3.5 h-3.5 animate-spin-slow" /> Campaign Roadmaps
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white mb-2">
-            Active Roadmap for <span className="text-[#d4af37] font-serif not-italic font-bold">Compliance</span>
+            The Sovereign <span className="text-[#d4af37] font-serif not-italic font-bold">Mobilization Roadmap</span>
           </h2>
           <p className="text-gray-300 text-sm leading-relaxed max-w-xl mx-auto font-light font-sans">
             Our constitutional watch list and de-escalation actions are cataloged chronologically. Watch our progress as each milestone dynamically locks into place.
