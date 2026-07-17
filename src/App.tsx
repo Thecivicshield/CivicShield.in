@@ -1194,6 +1194,8 @@ export default function App() {
           <AnonymousChat 
             questions={data?.questions || []} 
             onNewQuestion={handleNewQuestion} 
+            evidence={data?.evidence || []}
+            onAddEvidence={handleUploadFile}
           />
         </motion.div>
       )}

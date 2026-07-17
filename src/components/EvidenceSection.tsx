@@ -9,11 +9,12 @@ import HolographicVerifiedBadge from "./HolographicVerifiedBadge";
 import EvidenceDetailsModal from "./EvidenceDetailsModal";
 
 const isYouTubeUrl = (url: string) => {
-  return url.includes("youtube.com") || url.includes("youtu.be");
+  return url && (url.includes("youtube.com") || url.includes("youtu.be"));
 };
 
 const getYouTubeEmbedUrl = (url: string) => {
   try {
+    if (!url) return "";
     let videoId = "";
     if (url.includes("youtu.be/")) {
       videoId = url.split("youtu.be/")[1].split(/[?#]/)[0];
@@ -234,9 +235,9 @@ export default function EvidenceSection({ evidence, isAdmin, onDeleteEvidence, a
                     {/* Inline sharing for files to empower legal literacy dissemination */}
                     <div className="py-2 border-t border-b border-[#d4af37]/10 flex items-center justify-between">
                       <SocialShare 
-                        title={item.title} 
-                        text={item.description} 
-                        shareUrl={item.fileUrl.startsWith("http") ? item.fileUrl : `${window.location.origin}${item.fileUrl}`}
+                        title={item.title || "Evidence Material"} 
+                        text={item.description || "Verified campaign archive record."} 
+                        shareUrl={item.fileUrl && item.fileUrl.startsWith("http") ? item.fileUrl : `${window.location.origin}${item.fileUrl || ""}`}
                         inline={true}
                       />
                     </div>

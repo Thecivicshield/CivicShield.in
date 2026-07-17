@@ -21,23 +21,23 @@
       "customData": {
         "pillars": [
           {
-            "title": "Bridge the Gap",
-            "description": "Fostering mutual dialogue and professional compliance training to bridge the hostile divide between citizens and authority figures.",
-            "iconName": "Scale"
-          },
-          {
-            "title": "Eliminate Fear",
-            "description": "Taking the fear out of legal actions of police, code officers, and landlords by equipping you with simple, verified legal definitions.",
+            "title": "Overcome My Fear of Encounters",
+            "description": "Conquering the anxiety of administrative or roadside stops by learning my exact, verified rights so I can speak with composure and confidence.",
             "iconName": "ShieldAlert"
           },
           {
-            "title": "Citizen Advocacy",
-            "description": "Providing easy-to-use self-defense template vaults so you can represent your interests with institutional competence.",
+            "title": "Protect My Family, Land, & Home",
+            "description": "Equipping my household with standardized, robust administrative templates to defend our private property against unauthorized municipal overreaches.",
             "iconName": "Landmark"
           },
           {
-            "title": "Civic Transparency",
-            "description": "Independently cataloging government mandates, public spending budgets, and asset records to ensure permanent institutional transparency and open citizen auditing.",
+            "title": "Speak Personally, Advocate Competently",
+            "description": "Developing my self-representation skills so I can confidently voice my challenges and protect my interests directly in local public hearings.",
+            "iconName": "Scale"
+          },
+          {
+            "title": "Hold Our Local Servants Accountable",
+            "description": "Independently auditing government spending and public asset indexes to ensure that municipal authorities operate with full transparency for the community.",
             "iconName": "Eye"
           }
         ]
@@ -112,7 +112,13 @@
         ]
       }
     },
-
+    {
+      "id": "constitutional-network",
+      "title": "Constitutional Network Map",
+      "visible": true,
+      "order": 6,
+      "customData": {}
+    },
     {
       "id": "justice-shield",
       "title": "The Justice Shield",
@@ -288,5 +294,5 @@
       "recipientCount": 1
     }
   ],
-  "lastUpdated": 1783834217811
+  "lastUpdated": 1784260373991
 }

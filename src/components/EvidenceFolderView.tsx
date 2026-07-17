@@ -16,10 +16,11 @@ export default function EvidenceFolderView({ item, onClose }: EvidenceFolderView
   // Letter by letter typing of title on open
   useEffect(() => {
     let index = 0;
+    const titleText = item.title || "Untitled Document";
     const interval = setInterval(() => {
-      setTypedTitle((prev) => prev + (item.title[index] || ""));
+      setTypedTitle((prev) => prev + (titleText[index] || ""));
       index++;
-      if (index >= item.title.length) {
+      if (index >= titleText.length) {
         clearInterval(interval);
         // Trigger stamp after title completes
         setTimeout(() => setStampActive(true), 400);
@@ -46,7 +47,7 @@ export default function EvidenceFolderView({ item, onClose }: EvidenceFolderView
         <div className="flex justify-between items-center bg-[#d9c49e] border-b border-[#cbb387] px-6 py-3 relative">
           {/* Manila folder tab style */}
           <div className="absolute top-[-10px] left-8 bg-[#eeddbb] border-t-2 border-l-2 border-r-2 border-[#d4af37] px-6 py-2 rounded-t-md text-[10px] font-mono font-bold uppercase tracking-wider text-[#705634] shadow-sm z-10 select-none">
-            CASE_FILE: {item.id.slice(0, 8)}
+            CASE_FILE: {(item.id || "").slice(0, 8)}
           </div>
 
           <div className="flex items-center gap-2 mt-2">

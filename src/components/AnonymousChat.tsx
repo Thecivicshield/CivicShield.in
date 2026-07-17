@@ -1,14 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
   MessageSquare, X, Send, ShieldQuestion, BadgeHelp, Info, 
-  Sparkles, UserCheck, Trash2, FileText, Download, Cpu, HelpCircle 
+  Sparkles, UserCheck, Trash2, FileText, Download, Cpu, HelpCircle,
+  Plus, Link2, UploadCloud, CheckCircle2, ChevronDown, ChevronUp, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { AnonymousQuestion } from "../types";
+import { AnonymousQuestion, EvidenceItem } from "../types";
 
 interface AnonymousChatProps {
   questions: AnonymousQuestion[];
   onNewQuestion: (qText: string) => Promise<AnonymousQuestion | null>;
+  evidence: EvidenceItem[];
+  onAddEvidence: (payload: {
+    fileName: string;
+    fileType: string;
+    fileData: string;
+    title: string;
+    description: string;
+    verifiedBy: string;
+  }) => Promise<void>;
 }
 
 const SOVEREIGN_RESOURCES = [
@@ -38,11 +48,101 @@ const SOVEREIGN_RESOURCES = [
   }
 ];
 
-export default function AnonymousChat({ questions, onNewQuestion }: AnonymousChatProps) {
+export default function AnonymousChat({ questions, onNewQuestion, evidence, onAddEvidence }: AnonymousChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'directory' | 'resources'>('chat');
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Resource Form States
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [resTitle, setResTitle] = useState("");
+  const [resDesc, setResDesc] = useState("");
+  const [resUrl, setResUrl] = useState("");
+  const [resType, setResType] = useState<'pdf' | 'video' | 'spreadsheet' | 'text'>('pdf');
+  const [resMethod, setResMethod] = useState<'file' | 'link'>('link');
+  const [resFile, setResFile] = useState<File | null>(null);
+  const [resStatus, setResStatus] = useState<string | null>(null);
+  const [isSubmittingRes, setIsSubmittingRes] = useState(false);
+
+  const handleAddResource = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resTitle.trim()) {
+      setResStatus("Resource Title is required.");
+      return;
+    }
+
+    setIsSubmittingRes(true);
+    setResStatus("Compiling new resource...");
+
+    try {
+      if (resMethod === 'file') {
+        if (!resFile) {
+          setResStatus("Please choose a file first.");
+          setIsSubmittingRes(false);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const fileData = reader.result as string; // base64
+            await onAddEvidence({
+              fileName: resFile.name,
+              fileType: resType,
+              fileData,
+              title: resTitle,
+              description: resDesc || "User-added digital citizen resource",
+              verifiedBy: "Citizen Defender"
+            });
+            setResStatus("Resource uploaded and indexed successfully!");
+            // Reset form
+            setResTitle("");
+            setResDesc("");
+            setResUrl("");
+            setResFile(null);
+            setTimeout(() => {
+              setShowAddForm(false);
+              setResStatus(null);
+            }, 2000);
+          } catch (err: any) {
+            setResStatus("Upload failed: " + err.message);
+          } finally {
+            setIsSubmittingRes(false);
+          }
+        };
+        reader.readAsDataURL(resFile);
+      } else {
+        if (!resUrl.trim() || !resUrl.startsWith("http")) {
+          setResStatus("Please enter a valid HTTP/HTTPS URL.");
+          setIsSubmittingRes(false);
+          return;
+        }
+
+        await onAddEvidence({
+          fileName: resUrl,
+          fileType: resType,
+          fileData: resUrl,
+          title: resTitle,
+          description: resDesc || "User-added digital citizen resource link",
+          verifiedBy: "Citizen Defender"
+        });
+
+        setResStatus("Resource link indexed successfully!");
+        setResTitle("");
+        setResDesc("");
+        setResUrl("");
+        setTimeout(() => {
+          setShowAddForm(false);
+          setResStatus(null);
+        }, 2000);
+        setIsSubmittingRes(false);
+      }
+    } catch (err: any) {
+      setResStatus("Failed to add resource: " + err.message);
+      setIsSubmittingRes(false);
+    }
+  };
   const [conversation, setConversation] = useState<Array<{ sender: 'user' | 'bot' | 'admin', text: string, time: string }>>(() => {
     try {
       const saved = localStorage.getItem("civic_shield_chat_history_v2");
@@ -418,16 +518,155 @@ export default function AnonymousChat({ questions, onNewQuestion }: AnonymousCha
                       </div>
                     </div>
 
+                    {/* Expandable Form to Add Resource */}
+                    <div className="border border-[#d4af37]/15 rounded-sm overflow-hidden bg-[#001233]/40">
+                      <button
+                        onClick={() => setShowAddForm(!showAddForm)}
+                        className="w-full flex items-center justify-between p-3 text-xs font-mono uppercase tracking-wider text-[#d4af37] bg-[#d4af37]/5 hover:bg-[#d4af37]/10 transition-all font-bold"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Legal Resource</span>
+                        </div>
+                        {showAddForm ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </button>
+
+                      {showAddForm && (
+                        <form onSubmit={handleAddResource} className="p-3.5 space-y-3 border-t border-[#d4af37]/15 text-left bg-black/60">
+                          <div className="space-y-1">
+                            <label className="block text-[8px] font-mono text-gray-400 uppercase tracking-wider font-semibold">Resource Title</label>
+                            <input
+                              type="text"
+                              value={resTitle}
+                              onChange={(e) => setResTitle(e.target.value)}
+                              placeholder="e.g., California Court Fee Waiver Form"
+                              className="w-full px-2.5 py-1.5 text-xs bg-[#000a1a] border border-gray-800 focus:border-[#d4af37] text-white focus:outline-none rounded-sm font-sans"
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="block text-[8px] font-mono text-gray-400 uppercase tracking-wider font-semibold">Description</label>
+                            <textarea
+                              value={resDesc}
+                              onChange={(e) => setResDesc(e.target.value)}
+                              placeholder="Describe how this resource helps in litigation..."
+                              rows={2}
+                              className="w-full px-2.5 py-1.5 text-xs bg-[#000a1a] border border-gray-800 focus:border-[#d4af37] text-white focus:outline-none rounded-sm font-sans resize-none"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div className="space-y-1">
+                              <label className="block text-[8px] font-mono text-gray-400 uppercase tracking-wider font-semibold">Resource Type</label>
+                              <select
+                                value={resType}
+                                onChange={(e) => setResType(e.target.value as any)}
+                                className="w-full px-2.5 py-1.5 text-xs bg-[#000a1a] border border-gray-800 focus:border-[#d4af37] text-white focus:outline-none rounded-sm font-sans"
+                              >
+                                <option value="pdf">PDF Document</option>
+                                <option value="video">Video Tutorial</option>
+                                <option value="spreadsheet">Spreadsheet Sheet</option>
+                                <option value="text">Text Material</option>
+                              </select>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="block text-[8px] font-mono text-gray-400 uppercase tracking-wider font-semibold">Input Method</label>
+                              <select
+                                value={resMethod}
+                                onChange={(e) => setResMethod(e.target.value as any)}
+                                className="w-full px-2.5 py-1.5 text-xs bg-[#000a1a] border border-gray-800 focus:border-[#d4af37] text-white focus:outline-none rounded-sm font-sans"
+                              >
+                                <option value="link">Web Link / URL</option>
+                                <option value="file">Local Device File</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {resMethod === 'link' ? (
+                            <div className="space-y-1">
+                              <label className="block text-[8px] font-mono text-gray-400 uppercase tracking-wider font-semibold">Resource URL Link</label>
+                              <div className="relative">
+                                <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                                <input
+                                  type="url"
+                                  value={resUrl}
+                                  onChange={(e) => setResUrl(e.target.value)}
+                                  placeholder="https://example.com/document.pdf"
+                                  className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-[#000a1a] border border-gray-800 focus:border-[#d4af37] text-white focus:outline-none rounded-sm font-sans"
+                                  required={resMethod === 'link'}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              <label className="block text-[8px] font-mono text-gray-400 uppercase tracking-wider font-semibold">Upload File</label>
+                              <div className="flex items-center gap-2">
+                                <label className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-gray-800 hover:border-[#d4af37] bg-[#000a1a] text-gray-400 hover:text-white rounded-sm text-xs cursor-pointer transition-all">
+                                  <UploadCloud className="w-4 h-4 text-[#d4af37]" />
+                                  <span className="truncate">{resFile ? resFile.name : "Choose File..."}</span>
+                                  <input
+                                    type="file"
+                                    onChange={(e) => setResFile(e.target.files?.[0] || null)}
+                                    className="hidden"
+                                    required={resMethod === 'file'}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          )}
+
+                          {resStatus && (
+                            <p className="text-[9px] font-mono text-center text-[#ffd754] animate-pulse py-0.5">{resStatus}</p>
+                          )}
+
+                          <button
+                            type="submit"
+                            disabled={isSubmittingRes}
+                            className="w-full py-2 bg-[#d4af37] hover:bg-[#ffd754] disabled:bg-gray-700 text-black font-mono font-bold uppercase text-[10px] tracking-widest rounded-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            {isSubmittingRes ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            )}
+                            <span>{isSubmittingRes ? "Compiling..." : "Register Resource"}</span>
+                          </button>
+                        </form>
+                      )}
+                    </div>
+
                     <div className="space-y-2.5 flex-1 overflow-y-auto pr-1">
-                      {SOVEREIGN_RESOURCES.map((resource, index) => (
+                      {/* Merged Resources Loop */}
+                      {[
+                        ...evidence.map(ev => ({
+                          id: ev.id,
+                          title: ev.title,
+                          desc: ev.description,
+                          type: ev.type === "pdf" ? "PDF Handbook" : ev.type === "video" ? "Video Tutorial" : ev.type === "spreadsheet" ? "Spreadsheet Sheet" : "Text Material",
+                          size: ev.fileSize || "Dynamic",
+                          fileUrl: ev.fileUrl,
+                          isStatic: false
+                        })),
+                        ...SOVEREIGN_RESOURCES.map((r, i) => ({
+                          id: `static_${i}`,
+                          title: r.title,
+                          desc: r.desc,
+                          type: r.type,
+                          size: r.size,
+                          fileUrl: "",
+                          isStatic: true
+                        }))
+                      ].map((resource, index) => (
                         <div 
-                          key={index}
+                          key={resource.id}
                           className="p-3.5 bg-black/40 border border-gray-800/80 rounded-sm hover:border-[#d4af37]/35 hover:bg-black/60 transition-all flex flex-col justify-between"
                         >
                           <div className="flex items-start justify-between gap-3 mb-1.5">
                             <div>
                               <span className="font-mono text-[7.5px] uppercase tracking-wider text-[#d4af37] font-bold block mb-0.5">
-                                RESOURCE_DOC_0{index + 1}
+                                RESOURCE_DOC_0{index + 1} {!resource.isStatic && "• CITIZEN CONTRIBUTION"}
                               </span>
                               <h4 className="text-xs font-semibold text-white leading-tight font-serif tracking-wide">
                                 {resource.title}
@@ -446,12 +685,27 @@ export default function AnonymousChat({ questions, onNewQuestion }: AnonymousCha
                             <span className="text-[9px] font-mono text-gray-500 uppercase font-medium">
                               {resource.type}
                             </span>
-                            <button
-                              onClick={() => alert(`Initiating secure local download pipeline for "${resource.title}". This simulator prepares file payloads successfully.`)}
-                              className="px-3 py-1 rounded-sm bg-[#d4af37]/10 hover:bg-[#d4af37] border border-[#d4af37]/25 hover:border-transparent text-[#d4af37] hover:text-[#001233] text-[9px] font-mono uppercase font-bold tracking-wider transition-all flex items-center gap-1 cursor-pointer"
-                            >
-                              <Download className="w-3 h-3" /> Download Template
-                            </button>
+                            {resource.isStatic ? (
+                              <button
+                                onClick={() => {
+                                  // Elegant self-contained alert using standard state warning or styled visual feedback
+                                  alert(`Initiating download protocol for pre-loaded template: "${resource.title}". Sourced successfully.`);
+                                }}
+                                className="px-3 py-1 rounded-sm bg-[#d4af37]/10 hover:bg-[#d4af37] border border-[#d4af37]/25 hover:border-transparent text-[#d4af37] hover:text-[#001233] text-[9px] font-mono uppercase font-bold tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                              >
+                                <Download className="w-3 h-3" /> Download Template
+                              </button>
+                            ) : (
+                              <a
+                                href={resource.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                referrerPolicy="no-referrer"
+                                className="px-3 py-1 rounded-sm bg-[#d4af37]/20 hover:bg-[#d4af37] border border-[#d4af37]/35 hover:border-transparent text-[#d4af37] hover:text-[#001233] text-[9px] font-mono uppercase font-bold tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                              >
+                                <Download className="w-3 h-3" /> Download Material
+                              </a>
+                            )}
                           </div>
                         </div>
                       ))}
