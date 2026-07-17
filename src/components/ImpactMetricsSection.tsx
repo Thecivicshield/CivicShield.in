@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { Sparkles, Trophy, Plus, Trash2, Edit2 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 export interface MetricItem {
   label: string;
@@ -26,6 +26,17 @@ export default function ImpactMetricsSection({
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 600, height: 350 });
   const [hoveredBar, setHoveredBar] = useState<MetricItem | null>(null);
+  const [stampedCards, setStampedCards] = useState<Record<number, boolean>>({ 0: true, 1: true });
+
+  const playStampSound = () => {
+    // Sound effects removed by user request
+  };
+
+  const handleStampCard = (idx: number) => {
+    if (stampedCards[idx]) return;
+    playStampSound();
+    setStampedCards(prev => ({ ...prev, [idx]: true }));
+  };
 
   // Fallback defaults
   const activeMetrics = metrics && metrics.length > 0 ? metrics : [
@@ -57,7 +68,7 @@ export default function ImpactMetricsSection({
     // Clear previous elements
     d3.select(svgRef.current).selectAll("*").remove();
 
-    const margin = { top: 30, right: 20, bottom: 50, left: 55 };
+    const margin = { top: 30, right: 20, bottom: 75, left: 55 };
     const width = dimensions.width - margin.left - margin.right;
     const height = dimensions.height - margin.top - margin.bottom;
 
@@ -79,26 +90,20 @@ export default function ImpactMetricsSection({
       .domain([0, maxVal * 1.15]) // add 15% breathing room at the top
       .range([height, 0]);
 
-    // X Axis with clean typography
+    // X Axis with clean typography and rotated labels to prevent clutter
     svg.append("g")
       .attr("transform", `translate(0,${height})`)
       .call(d3.axisBottom(x))
       .selectAll("text")
-      .style("textAnchor", "middle")
-      .attr("dy", "1em")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em")
+      .attr("transform", "rotate(-25)")
       .attr("fill", "#9ca3af")
-      .attr("fontSize", "10px")
+      .attr("fontSize", "9.5px")
       .attr("fontFamily", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace")
       .style("text-transform", "uppercase")
-      .style("letter-spacing", "0.05em")
-      .each(function() {
-        // Wrap labels if they are too long
-        const text = d3.select(this);
-        const words = text.text().split(/\s+/);
-        if (words.length > 2 && width < 450) {
-          text.text(words.slice(0, 2).join(" ") + "...");
-        }
-      });
+      .style("letter-spacing", "0.05em");
 
     // Hide X axis domain line and style grid lines
     svg.selectAll(".domain").attr("stroke", "#374151").attr("stroke-opacity", 0.4);
@@ -370,27 +375,56 @@ export default function ImpactMetricsSection({
             
             {/* Realtime Cards list */}
             <div className="grid grid-cols-2 gap-4">
-              {activeMetrics.map((item, idx) => (
-                <motion.div 
-                  key={idx} 
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.08 }}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  className="bg-[#001233]/90 border border-[#d4af37]/15 p-5 rounded-sm hover:border-[#d4af37]/45 transition-colors text-center flex flex-col justify-between"
-                >
-                  <p className="text-[10px] font-mono text-[#d4af37] uppercase tracking-widest leading-relaxed line-clamp-1">
-                    {item.label}
-                  </p>
-                  <p className="text-4xl font-serif font-normal italic text-white mt-2 mb-1">
-                    {item.value.toLocaleString()}
-                  </p>
-                  <span className="text-[8px] font-mono uppercase text-gray-400 font-bold self-center py-0.5 px-2 bg-slate-900 border border-white/5 rounded-sm">
-                    Verified
-                  </span>
-                </motion.div>
-              ))}
+              {activeMetrics.map((item, idx) => {
+                const isStamped = stampedCards[idx];
+                return (
+                  <motion.div 
+                    key={idx} 
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.08 }}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    onClick={() => handleStampCard(idx)}
+                    className="bg-[#001233]/90 border border-[#d4af37]/15 p-5 rounded-sm hover:border-[#d4af37]/45 transition-colors text-center flex flex-col justify-between cursor-pointer relative overflow-hidden select-none min-h-[140px]"
+                  >
+                    {/* Animated rubber stamp overlay */}
+                    <AnimatePresence>
+                      {isStamped && (
+                        <motion.div
+                          initial={{ scale: 3.5, opacity: 0, rotate: -45 }}
+                          animate={{ scale: 1, opacity: 0.85, rotate: -15 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ type: "spring", damping: 10, stiffness: 180 }}
+                          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-20"
+                        >
+                          <div className="border-2 border-dashed border-[#ef4444] text-[#ef4444] rounded-full w-20 h-20 flex flex-col items-center justify-center font-mono text-[8px] font-extrabold uppercase rotate-[-15deg] bg-[#ef4444]/5 backdrop-blur-[0.2px] leading-none shadow-[0_4px_12px_rgba(239,68,68,0.15)]">
+                            <span className="text-[10px] font-black tracking-wide">VERIFIED</span>
+                            <span className="text-[5.5px] tracking-[0.18em] mt-1 font-mono">CIVIC_LEDGER</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <p className="text-[10px] font-mono text-[#d4af37] uppercase tracking-widest leading-relaxed line-clamp-1 relative z-10">
+                      {item.label}
+                    </p>
+                    <p className="text-4xl font-serif font-normal italic text-white mt-2 mb-1 relative z-10">
+                      {item.value.toLocaleString()}
+                    </p>
+                    
+                    <div className="relative z-10 mt-auto flex flex-col items-center">
+                      <span className={`text-[8.5px] font-mono uppercase font-bold py-0.5 px-2 rounded-sm transition-all duration-300 ${
+                        isStamped 
+                          ? "bg-emerald-950/70 text-emerald-400 border border-emerald-500/20"
+                          : "bg-slate-900 text-gray-500 hover:text-[#d4af37] border border-white/5 hover:border-[#d4af37]/40 animate-pulse"
+                      }`}>
+                        {isStamped ? "✓ COMPLIANT" : "⍛ STAMP LEDGER"}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
             {/* Admin Metrics Inputs Panel */}

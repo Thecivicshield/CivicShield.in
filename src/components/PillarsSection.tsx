@@ -39,21 +39,7 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
   const handlePageChange = (newIndex: number) => {
     if (newIndex === activePageIndex || isFlipping) return;
     
-    // Play sound if available
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.25);
-      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.25);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.25);
-    } catch (e) {}
+    // Sound effects removed by user request
 
     setFlipDirection(newIndex > activePageIndex ? "next" : "prev");
     setIsFlipping(true);
@@ -94,10 +80,10 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
             <BookOpen className="w-3.5 h-3.5" /> Interactive Constitutional Archive
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white mb-4">
-            The Book of <span className="text-[#d4af37] font-serif not-italic font-bold">Sovereign Core Axioms</span>
+            The Ledger of <span className="text-[#d4af37] font-serif not-italic font-bold">Sovereign Core Goals</span>
           </h2>
           <p className="text-gray-300 text-sm max-w-xl mx-auto leading-relaxed font-light">
-            Flip through the sovereign chapters of our administrative code. Click a chapter index on the Left Page to trigger a mechanical page turn revealing the specific statutory charter.
+            Flip through the sovereign core goals of our movement. Click a goal index on the Left Page to trigger a mechanical page turn revealing the specific strategic charter.
           </p>
         </div>
 
@@ -108,12 +94,12 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
             {/* Book Spine Center Gutter */}
             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-6 bg-gradient-to-r from-black/40 via-black/80 to-black/40 border-x border-[#d4af37]/10 z-20 shadow-inner" />
             
-            {/* Left Page: Table of Contents & Chapter Selector */}
+            {/* Left Page: Table of Contents & Goal Selector */}
             <div className="flex flex-col justify-between pr-0 md:pr-6 z-10">
               <div className="space-y-6">
                 <div className="border-b border-[#d4af37]/20 pb-3">
-                  <p className="font-mono text-[9px] text-[#d4af37] tracking-[0.25em] uppercase">INDEX OF STATUTORY CHARTERS</p>
-                  <h3 className="text-xl font-serif font-bold text-white mt-1">Book Chapter Index</h3>
+                  <p className="font-mono text-[9px] text-[#d4af37] tracking-[0.25em] uppercase">INDEX OF CORE MISSIONS</p>
+                  <h3 className="text-xl font-serif font-bold text-white mt-1">Sovereign Goals Index</h3>
                 </div>
 
                 <div className="space-y-3.5">
@@ -135,7 +121,7 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
                           <ChapterIcon className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-mono text-[8px] opacity-75">CHAPTER 0{idx + 1}</p>
+                          <p className="font-mono text-[8px] opacity-75">GOAL 0{idx + 1}</p>
                           <p className="text-xs tracking-wide uppercase font-semibold">{pillar.title}</p>
                         </div>
                         <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? "translate-x-1" : "opacity-40"}`} />
@@ -152,7 +138,7 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
               </div>
             </div>
 
-            {/* Right Page: Selected Chapter Content (with page flip animation) */}
+            {/* Right Page: Selected Goal Content (with page flip animation) */}
             <div className="relative pl-0 md:pl-6 z-10 flex flex-col justify-between min-h-[280px]">
               
               {/* PAGE FLIPPING CONTAINER */}
@@ -178,25 +164,25 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
                     className="space-y-5 h-full flex flex-col justify-between"
                   >
                     <div className="space-y-4">
-                      {/* Chapter Title Badge */}
+                      {/* Goal Title Badge */}
                       <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-3">
                         <div className="flex items-center gap-2">
                           <div className="p-2 bg-[#d4af37]/10 border border-[#d4af37]/25 rounded-sm text-[#d4af37]">
                             <ActiveIcon className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="font-mono text-[8px] text-[#d4af37] tracking-widest">CHAPTER SECTION 0{activePageIndex + 1}</p>
+                            <p className="font-mono text-[8px] text-[#d4af37] tracking-widest">GOAL SECTION 0{activePageIndex + 1}</p>
                             <p className="text-[10px] font-mono text-gray-400">UNSEALED PRESERVER CODE</p>
                           </div>
                         </div>
-                        <span className="font-mono text-[9px] text-gray-500 font-bold uppercase">CS_STATUTE_0{activePageIndex + 1}</span>
+                        <span className="font-mono text-[9px] text-gray-500 font-bold uppercase">CS_GOAL_0{activePageIndex + 1}</span>
                       </div>
 
                       {/* Content Form Block (Editable if Admin Mode is enabled) */}
                       <div className="space-y-4">
                         {isAdmin ? (
                           <div className="space-y-2">
-                            <label className="font-mono text-[9px] text-[#d4af37] block">CHAPTER TITLE</label>
+                            <label className="font-mono text-[9px] text-[#d4af37] block">GOAL TITLE</label>
                             <input
                               type="text"
                               value={activePillar.title}
@@ -212,7 +198,7 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
 
                         {isAdmin ? (
                           <div className="space-y-2">
-                            <label className="font-mono text-[9px] text-[#d4af37] block">CHAPTER CONTENT BODY</label>
+                            <label className="font-mono text-[9px] text-[#d4af37] block">GOAL CONTENT BODY</label>
                             <textarea
                               value={activePillar.description}
                               onChange={(e) => handleTextChange(activePageIndex, "description", e.target.value)}
@@ -230,7 +216,7 @@ export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accen
 
                     {isAdmin && (
                       <div className="text-[9.5px] font-mono text-[#d4af37]/65 italic animate-pulse">
-                        ✏️ Real-time updates active. Type above to edit chapter records.
+                        ✏️ Real-time updates active. Type above to edit goal records.
                       </div>
                     )}
                   </motion.div>

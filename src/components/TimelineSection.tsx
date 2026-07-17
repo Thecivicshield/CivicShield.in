@@ -122,10 +122,10 @@ export default function TimelineSection({
           className="text-center max-w-3xl mx-auto mb-20"
         >
           <div className="inline-flex items-center gap-1.5 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-sm px-3 py-1.5 text-xs font-mono uppercase tracking-widest text-[#d4af37] leading-none mb-4">
-            <Compass className="w-3.5 h-3.5 animate-spin-slow" /> Campaign Roadmaps
+            <Compass className="w-3.5 h-3.5 animate-spin-slow" /> Sovereign Flightpath & Chronicles
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white mb-2">
-            The Sovereign <span className="text-[#d4af37] font-serif not-italic font-bold">Mobilization Roadmap</span>
+            The Jurisdictional <span className="text-[#d4af37] font-serif not-italic font-bold">Shield Ascent</span>
           </h2>
           <p className="text-gray-300 text-sm leading-relaxed max-w-xl mx-auto font-light font-sans">
             Our constitutional watch list and de-escalation actions are cataloged chronologically. Watch our progress as each milestone dynamically locks into place.

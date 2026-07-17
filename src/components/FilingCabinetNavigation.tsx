@@ -25,51 +25,13 @@ export default function FilingCabinetNavigation() {
         targetId,
       });
 
-      // Play mechanical slide sound if sound system exists
-      try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        // Squeaky drawer slide sound + folder ruffle
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
-      } catch (err) {
-        // Sound fallback silent
-      }
+      // Sound effects removed by user request
 
       // Step 2: Retrieve file folder (300ms later)
       setTimeout(() => {
         setCabinetState(prev => ({ ...prev, status: "retrieving" }));
         
-        // Play crisp paper rustle sound
-        try {
-          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const bufferSize = audioCtx.sampleRate * 0.15;
-          const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-          const data = buffer.getChannelData(0);
-          for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-          }
-          const noise = audioCtx.createBufferSource();
-          noise.buffer = buffer;
-          const filter = audioCtx.createBiquadFilter();
-          filter.type = "bandpass";
-          filter.frequency.value = 1000;
-          const gain = audioCtx.createGain();
-          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-          noise.connect(filter);
-          filter.connect(gain);
-          gain.connect(audioCtx.destination);
-          noise.start();
-        } catch (e) {}
+        // Sound effects removed by user request
 
         // Scroll page programmatically to section
         const element = document.getElementById(targetId);
@@ -82,20 +44,7 @@ export default function FilingCabinetNavigation() {
       setTimeout(() => {
         setCabinetState(prev => ({ ...prev, status: "closing" }));
         
-        // Play mechanical click/shut sound
-        try {
-          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(90, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-          gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.15);
-        } catch (e) {}
+        // Sound effects removed by user request
       }, 750);
 
       // Step 4: Finish (950ms later)

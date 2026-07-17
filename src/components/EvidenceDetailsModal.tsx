@@ -106,40 +106,95 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
     }
   };
 
+  // Generate multi-page text content to make page turn feature extremely pointful and educational
+  const getPageContent = (pageNum: number) => {
+    const d = item ? item.description || "" : "";
+    switch (pageNum) {
+      case 1:
+        return {
+          subHeader: "SECTION I: ABSTRACT & AUDIT REGISTRY",
+          heading: item ? item.title : "",
+          body: d,
+          citation: item ? `This certified de-escalation document forms part of the primary Sovereignty Guard Database. Verified by ${item.verifiedBy || "Civic Shield Team"} on ${item.uploadedAt}.` : ""
+        };
+      case 2:
+        return {
+          subHeader: "SECTION II: CONSTITUTIONAL ANCHOR & PRECEDENT",
+          heading: "Legal Jurisdiction & Common Law Protection",
+          body: "This record represents standard procedural natural justice guarantees. In administrative hearings, executive agencies and local boards are strictly bound by the rules of natural justice, meaning no citation, penalty, or property seizure is legally enforceable without clear notice, open grounds, and a neutral appeal tribunal.",
+          citation: "See landmark ruling 'Audi Alteram Partem' (Hear the other side), affirming that any citation issued in secrecy remains void ab initio."
+        };
+      case 3:
+        return {
+          subHeader: "SECTION III: CITIZEN DIRECTIVES & PEACEFUL PROTOCOLS",
+          heading: "Recommended Action & Safe Interaction Playbook",
+          body: "When encountering administrative officials or highway inspectors attempting warrantless search or compelled declarations: (1) Maintain complete visual calm. (2) Verbally state that you do not consent to any warrantless searches or compelled declarations. (3) Respectfully request their credential serial numbers. (4) Document the exact time, location, and statements verbatim.",
+          citation: "Sovereign Safeguard Protocol: Absolute silence combined with a request for specific statutory warrants represents standard common law defense."
+        };
+      case 4:
+        return {
+          subHeader: "SECTION IV: DEFENSIVE CITATIONS & STATUTORY LIMITS",
+          heading: "Limiting Executive & Corporate Overreach",
+          body: "Under modern public transparency laws (including the Freedom of Information Act and Public Records Acts), state-backed entities and regional departments are required to release chemical environmental tests, water safety logs, and regulatory contracts. Any attempt to claim confidentiality over public safety papers is an unconstitutional wall of secrecy that you have the right to challenge.",
+          citation: "Assert FOIA or Public Records standard to open administrative cabinet vaults immediately."
+        };
+      case 5:
+        return {
+          subHeader: "SECTION V: LEGAL REDRESS & PUBLIC AUDITS",
+          heading: "Remedial Filing & Sovereign Assembly Defenses",
+          body: "If your right to peaceful, candlelit public gathering or local association has been disrupted by arbitrary kettling or mass preemptive fines, immediately compile your evidence folders for a motion of judicial review. Preemptive municipal codes cannot supersede supreme constitutional assembly charters, rendering arbitrary local permits null and void during peaceful association.",
+          citation: "Refer to landmark assembly precedents to file a formal citizen complaint and secure statutory damage waivers."
+        };
+      default:
+        return { subHeader: "", heading: "", body: "", citation: "" };
+    }
+  };
+
+  const [pageFlipTrigger, setPageFlipTrigger] = useState(false);
+  useEffect(() => {
+    setPageFlipTrigger(true);
+    const timer = setTimeout(() => setPageFlipTrigger(false), 450);
+    return () => clearTimeout(timer);
+  }, [pagesRead]);
+
+  const activePage = getPageContent(pagesRead);
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[1200] flex items-center justify-center p-3 sm:p-6 md:p-10 overflow-y-auto">
+        <div className="fixed inset-0 z-[1200] overflow-y-auto">
           {/* Frosted Glass Dark Backdrop with slow animate-pulse */}
           <motion.div
             initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(24px)" }}
+            animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
             exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            transition={{ duration: 0.45 }}
+            transition={{ duration: 0.35 }}
             onClick={onClose}
-            className="fixed inset-0 bg-gradient-to-br from-[#000714]/95 via-[#000e2b]/97 to-[#00143a]/95 cursor-crosshair"
+            className="fixed inset-0 bg-black/90 cursor-crosshair"
           />
 
-          {/* Golden Ambient Glow Background */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[70%] bg-[#d4af37]/5 rounded-full filter blur-[120px] pointer-events-none z-0" />
+          {/* Centering Wrapper */}
+          <div className="flex min-h-screen items-center justify-center p-3 sm:p-6 md:p-10 relative pointer-events-none z-10">
+            {/* Golden Ambient Glow Background */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[70%] bg-[#d4af37]/5 rounded-full filter blur-[120px] pointer-events-none z-0" />
 
-          {/* Main Glassmorphic Panel Container with Document Reveal paper-unfolding animation */}
-          <motion.div
-            id="evidence-details-modal"
-            initial={{ opacity: 0, scale: 0.45, rotateX: 85, transformOrigin: "center center" }}
-            animate={{ opacity: 1, scale: 1, rotateX: 0, transformOrigin: "center center" }}
-            exit={{ opacity: 0, scale: 0.65, rotateX: -45, transformOrigin: "center center" }}
-            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-6xl bg-[#001233]/85 border border-[#d4af37]/45 rounded-sm overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.9),_0_0_45px_rgba(212,175,55,0.2)] flex flex-col md:grid md:grid-cols-12 min-h-[82vh] md:max-h-[88vh] font-sans z-10 backdrop-blur-xl"
-          >
-            {/* Holographic Glowing Border Overlays */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#d4af37]/60 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00f0ff]/40 to-transparent" />
+            {/* Main Glassmorphic Panel Container with Document Reveal paper-unfolding animation */}
+            <motion.div
+              id="evidence-details-modal"
+              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 30 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-full max-w-6xl bg-[#001233]/98 border border-[#d4af37]/45 rounded-sm overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.9),_0_0_45px_rgba(212,175,55,0.15)] flex flex-col md:grid md:grid-cols-12 md:h-[85vh] font-sans pointer-events-auto backdrop-blur-xl"
+            >
+              {/* Holographic Glowing Border Overlays */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#d4af37]/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00f0ff]/40 to-transparent" />
 
-            {/* Left Column: High-Resolution Live Preview Stage */}
-            <div className="md:col-span-7 bg-[#000a1a]/70 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#d4af37]/15 relative overflow-hidden">
-              {/* Abstract Glass Grid Sheet Backing */}
-              <div className="absolute inset-0 bg-grid-lines opacity-[0.05] pointer-events-none" />
+              {/* Left Column: High-Resolution Live Preview Stage */}
+              <div className="md:col-span-7 bg-[#000a1a]/70 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#d4af37]/15 relative overflow-y-auto md:overflow-hidden h-auto md:h-full">
+                {/* Abstract Glass Grid Sheet Backing */}
+                <div className="absolute inset-0 bg-grid-lines opacity-[0.05] pointer-events-none" />
               
               {/* Floating Holographic Compass Accent */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border border-[#d4af37]/5 rounded-full pointer-events-none flex items-center justify-center animate-spin" style={{ animationDuration: "120s" }}>
@@ -194,7 +249,17 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                   </div>
                 ) : (
                   /* stylized document mock layout mimicking high fidelity parchment book */
-                  <div className="w-full max-w-[420px] bg-[#faf6ee] text-[#2c2013] rounded-sm p-6 sm:p-8 shadow-[0_15px_45px_rgba(0,0,0,0.6),_0_0_15px_rgba(212,175,55,0.2)] border-2 border-[#d4af37]/35 relative flex flex-col justify-between overflow-hidden min-h-[380px] group transition-all duration-300">
+                  <motion.div 
+                    style={{ transformOrigin: "bottom center" }}
+                    animate={pageFlipTrigger ? { 
+                      rotateY: [0, -18, 12, 0], 
+                      scale: [1, 0.95, 1.03, 1],
+                      x: [0, -8, 6, 0],
+                      y: [0, 5, -5, 0]
+                    } : {}}
+                    transition={{ duration: 0.45, ease: "easeInOut" }}
+                    className="w-full max-w-[420px] bg-[#faf6ee] text-[#2c2013] rounded-sm p-6 sm:p-8 shadow-[0_15px_45px_rgba(0,0,0,0.6),_0_0_15px_rgba(212,175,55,0.2)] border-2 border-[#d4af37]/35 relative flex flex-col justify-between overflow-hidden min-h-[400px] group"
+                  >
                     {/* Retro lines & textures */}
                     <div className="absolute inset-0 bg-[linear-gradient(#eae0cc_1px,_transparent_1px)] bg-[size:100%_20px] opacity-25 pointer-events-none" />
                     <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#d4af37]/15 to-transparent pointer-events-none" />
@@ -205,28 +270,30 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                       <span>PAGE 0{pagesRead} OF 05</span>
                     </div>
 
-                    <div className="space-y-4 my-6">
+                    <div className="space-y-4 my-4 flex-1 flex flex-col justify-center">
                       <div className="space-y-1">
-                        <span className="text-[7px] font-mono font-extrabold text-[#9c7823] tracking-widest uppercase">
-                          OFFICIAL COGNIZANCE DOCUMENT:
+                        <span className="text-[7.5px] font-mono font-extrabold text-[#9c7823] tracking-widest uppercase block">
+                          {activePage.subHeader}
                         </span>
-                        <h4 className="text-base font-serif font-bold text-gray-900 tracking-wide leading-snug">
-                          {item.title}
+                        <h4 className="text-base font-serif font-black text-gray-900 tracking-tight leading-snug">
+                          {activePage.heading}
                         </h4>
                       </div>
 
                       <div className="text-[11px] leading-relaxed font-serif text-gray-700 space-y-2 max-h-[190px] overflow-y-auto pr-1">
-                        <p className="indent-4 font-light">
-                          {item.description}
+                        <p className="indent-4 font-normal text-slate-800 text-justify">
+                          {activePage.body}
                         </p>
-                        <p className="font-light italic text-[10px] text-gray-500 border-l border-amber-800/30 pl-2">
-                          "Under established legal standards, public officers must recognize absolute administrative supremacy whenever certified de-escalation files are cited."
-                        </p>
+                        {activePage.citation && (
+                          <p className="font-sans font-bold italic text-[9.5px] text-amber-900/90 border-l-2 border-amber-800/40 pl-2 bg-amber-50/40 p-1.5 rounded-sm">
+                            "{activePage.citation}"
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     {/* Book interactive widget */}
-                    <div className="border-t border-[#8c7355]/20 pt-3 flex items-center justify-between font-mono text-[8px]">
+                    <div className="border-t border-[#8c7355]/20 pt-3 flex items-center justify-between font-mono text-[8.5px]">
                       <button 
                         onClick={() => {
                           setPagesRead(p => p > 1 ? p - 1 : 5);
@@ -237,7 +304,7 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                         PREV PAGE
                       </button>
 
-                      <div className="flex items-center gap-1 text-[#5a4833]">
+                      <div className="flex items-center gap-1 text-[#5a4833] select-none">
                         <Award className="w-3.5 h-3.5 text-[#d4af37]" />
                         <span className="tracking-widest">VERIFIED CONFORMITY</span>
                       </div>
@@ -253,12 +320,31 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                       </button>
                     </div>
 
-                    {/* Realistic Stamp Mark Overlay */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 rotate-[-15deg] opacity-[0.8] pointer-events-none select-none border-2 border-red-600/30 text-red-600/30 rounded-sm p-1 text-[8px] font-mono font-bold text-center tracking-widest leading-tight">
-                      <div>CIVIC PROTECT</div>
-                      <div className="text-[6px] border-t border-red-600/20 mt-0.5">PUBLIC RELEASE</div>
-                    </div>
-                  </div>
+                    {/* Highly tactile grunge rubber stamp with massive slam drop-down animation on page flip */}
+                    <AnimatePresence mode="popLayout">
+                      {pageFlipTrigger && (
+                        <motion.div
+                          key={`stamp-page-${pagesRead}`}
+                          initial={{ scale: 5, opacity: 0, rotate: -45, filter: "blur(6px)" }}
+                          animate={{ scale: 1, opacity: 0.85, rotate: -15, filter: "blur(0px)" }}
+                          exit={{ opacity: 0 }}
+                          transition={{ type: "spring", damping: 10, stiffness: 240, delay: 0.05 }}
+                          className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none select-none border-[3px] border-double border-red-600 text-red-600 rounded-sm p-2 text-center uppercase tracking-[0.2em] font-mono font-black text-[9px] bg-white/95 shadow-md"
+                        >
+                          <div>CIVIC SHIELD</div>
+                          <div className="text-[6.5px] border-t border-red-600/30 mt-0.5 pt-0.5 font-bold">RELEASE APPROVED</div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Steady faded stamp when not flipping */}
+                    {!pageFlipTrigger && (
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 rotate-[-15deg] opacity-[0.55] pointer-events-none select-none border-[3px] border-double border-red-600 text-red-600 rounded-sm p-2 text-center uppercase tracking-[0.2em] font-mono font-black text-[9px]">
+                        <div>CIVIC SHIELD</div>
+                        <div className="text-[6.5px] border-t border-red-600/30 mt-0.5 pt-0.5 font-bold">RELEASE APPROVED</div>
+                      </div>
+                    )}
+                  </motion.div>
                 )}
               </div>
 
@@ -291,7 +377,7 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
             </div>
 
             {/* Right Column: Advanced Glassmorphic Metadata & Controls */}
-            <div className="md:col-span-5 flex flex-col justify-between overflow-y-auto bg-gradient-to-b from-[#00173f]/60 to-[#000a1d]/85 p-6 relative">
+            <div className="md:col-span-5 flex flex-col justify-between overflow-y-auto bg-gradient-to-b from-[#00173f]/60 to-[#000a1d]/85 p-6 relative h-auto md:h-full">
               {/* Back button/close button on top of column */}
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xs font-mono font-extrabold text-[#ffd754] tracking-widest uppercase flex items-center gap-1.5">
@@ -574,7 +660,8 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                 </div>
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       )}
     </AnimatePresence>

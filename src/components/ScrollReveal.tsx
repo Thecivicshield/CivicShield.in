@@ -17,14 +17,14 @@ export default function ScrollReveal({
 }: ScrollRevealProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  // If user prefers reduced motion, only fade in with no spatial transform or scale
+  // If user prefers reduced motion, only fade in with no spatial transform
   if (prefersReducedMotion) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6, delay }}
+        viewport={{ once: true, margin: "-20px" }}
+        transition={{ duration: 0.4, delay }}
         className={className}
       >
         {children}
@@ -32,100 +32,67 @@ export default function ScrollReveal({
     );
   }
 
-  // Generate unique, non-repetitive reveal variants based on section index
-  // We alternate between:
-  // 1. Bottom slide + scale up + blur
-  // 2. Left slide + slight rotation + scale + blur
-  // 3. Right slide + slight negative rotation + scale + blur
-  // 4. Center scale + intense blur + fade
-  const animationType = index % 4;
+  // Snappy, silky-smooth scroll reveal transitions. 
+  // We keep it extremely consistent, clean, and instant-acting.
+  const animationType = index % 3;
 
   const getVariants = () => {
     switch (animationType) {
-      case 0: // Bottom Slide + Scale
+      case 0: // Subtle slide up + fade (standard and clean)
         return {
           hidden: {
             opacity: 0,
-            y: 45,
-            scale: 0.94,
-            filter: "blur(8px)",
+            y: 15,
           },
           visible: {
             opacity: 1,
             y: 0,
-            scale: 1,
-            filter: "blur(0px)",
             transition: {
-              type: "spring",
-              stiffness: 70,
-              damping: 15,
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1], // easeOutExpo: starts fast, finishes smooth
               delay: delay,
             },
           },
         };
-      case 1: // Left Slide + Subtle Tilt
+      case 1: // Subtle scale + fade (adds beautiful rhythm)
         return {
           hidden: {
             opacity: 0,
-            x: -50,
-            rotate: -1.5,
-            scale: 0.96,
-            filter: "blur(10px)",
+            scale: 0.98,
+          },
+          visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+              delay: delay,
+            },
+          },
+        };
+      case 2: // Subtle slide from left + fade (asymmetric accent)
+        return {
+          hidden: {
+            opacity: 0,
+            x: -12,
           },
           visible: {
             opacity: 1,
             x: 0,
-            rotate: 0,
-            scale: 1,
-            filter: "blur(0px)",
             transition: {
-              type: "spring",
-              stiffness: 65,
-              damping: 14,
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
               delay: delay,
             },
           },
         };
-      case 2: // Right Slide + Reverse Subtle Tilt
-        return {
-          hidden: {
-            opacity: 0,
-            x: 50,
-            rotate: 1.5,
-            scale: 0.96,
-            filter: "blur(10px)",
-          },
-          visible: {
-            opacity: 1,
-            x: 0,
-            rotate: 0,
-            scale: 1,
-            filter: "blur(0px)",
-            transition: {
-              type: "spring",
-              stiffness: 65,
-              damping: 14,
-              delay: delay,
-            },
-          },
-        };
-      case 3: // Pure Scale + Depth Blur
       default:
         return {
-          hidden: {
-            opacity: 0,
-            scale: 0.9,
-            filter: "blur(14px)",
-          },
+          hidden: { opacity: 0, y: 15 },
           visible: {
             opacity: 1,
-            scale: 1,
-            filter: "blur(0px)",
-            transition: {
-              duration: 0.85,
-              ease: [0.16, 1, 0.3, 1], // elegant ease-out expo
-              delay: delay,
-            },
+            y: 0,
+            transition: { duration: 0.5, ease: "easeOut", delay },
           },
         };
     }
@@ -135,7 +102,7 @@ export default function ScrollReveal({
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-120px" }}
+      viewport={{ once: true, margin: "-30px" }}
       variants={getVariants()}
       className={className}
     >

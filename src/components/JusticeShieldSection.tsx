@@ -4,57 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Statute } from "../types";
 
 export const playSynthSound = (type: "shatter" | "success" | "click" | "powerup") => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    
-    if (type === "shatter") {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(180, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.4);
-      
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.4);
-    } else if (type === "success") {
-      const now = ctx.currentTime;
-      const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.08, now + i * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.6);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now + i * 0.08);
-        osc.stop(now + i * 0.08 + 0.6);
-      });
-    } else if (type === "click") {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.setValueAtTime(400, ctx.currentTime + 0.05);
-      gain.gain.setValueAtTime(0.04, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.05);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    }
-  } catch (err) {
-    console.warn("Audio Context not supported or allowed", err);
-  }
+  // Sound effects removed by user request
 };
 
 interface LawCard {

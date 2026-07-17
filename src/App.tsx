@@ -61,6 +61,31 @@ export default function App() {
     }
   });
 
+  const [activeFolderTab, setActiveFolderTab] = useState<"study" | "vault" | "dispatch">("study");
+
+  // Automatically switch tabs if an anchor link is triggered
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      if (hash === "#evidence" || hash === "#metrics" || hash === "#impact-metrics" || hash.includes("ev_") || hash.includes("evidence")) {
+        setActiveFolderTab("vault");
+      } else if (hash === "#pillars" || hash === "#laws" || hash === "#cases" || hash === "#justice-shield" || hash === "#constitutional-network" || hash.includes("shield") || hash.includes("network")) {
+        setActiveFolderTab("study");
+      } else if (hash === "#blog" || hash === "#timeline" || hash === "#newsletter" || hash.includes("dispatch") || hash.includes("road")) {
+        setActiveFolderTab("dispatch");
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange, { passive: true });
+    window.addEventListener("popstate", handleHashChange, { passive: true });
+    // Run once on load
+    handleHashChange();
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+      window.removeEventListener("popstate", handleHashChange);
+    };
+  }, [data]);
+
   const handleEnterWebsite = (sectionId?: string) => {
     // Delay unmounting the intro gate by 1200ms to allow the immersive golden liquid melt curtain animation to finish
     setTimeout(() => {
@@ -623,6 +648,20 @@ export default function App() {
   }
 
   const sortedBlocks = data ? [...data.blocks].sort((a, b) => a.order - b.order) : [];
+
+  const isBlockInActiveTab = (blockId: string) => {
+    if (blockId === "hero") return true;
+    if (activeFolderTab === "study") {
+      return blockId === "pillars" || blockId === "justice-shield" || blockId === "constitutional-network";
+    }
+    if (activeFolderTab === "vault") {
+      return blockId === "evidence" || blockId === "impact-metrics";
+    }
+    if (activeFolderTab === "dispatch") {
+      return blockId === "timeline" || blockId === "blog" || blockId === "social-feed" || blockId === "newsletter";
+    }
+    return false;
+  };
   const heroBlock = data?.blocks.find(b => b.id === "hero");
   const pillarsBlock = data?.blocks.find(b => b.id === "pillars");
   const timelineBlock = data?.blocks.find(b => b.id === "timeline");
@@ -723,6 +762,7 @@ export default function App() {
         {/* Dynamic layouter blocks based on user-sorted array order */}
         {sortedBlocks.map((block, index) => {
           if (!block.visible) return null;
+          if (block.id !== "hero" && !isBlockInActiveTab(block.id)) return null;
 
           const blockContent = (() => {
             switch (block.id) {
@@ -985,7 +1025,115 @@ export default function App() {
         if (!blockContent) return null;
 
         if (block.id === "hero") {
-          return blockContent;
+          return (
+            <React.Fragment key={block.id}>
+              {blockContent}
+              
+              {/* BRASS FILING CABINET DRAWER SWITCHER - RESOLVES CLUTTER & ORGANIZES SECTIONS */}
+              <div className="max-w-4xl mx-auto px-4 mt-16 mb-8 relative z-20">
+                <div className="text-center mb-6">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#d4af37]/70 block">
+                    CIVIC SHIELD CENTRAL RECORD OFFICE
+                  </span>
+                  <h3 className="font-serif italic text-xl text-white mt-1">
+                    Select a Cabinet Drawer to Unseal Files
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 bg-[#001233]/85 p-2.5 border-2 border-[#d4af37]/35 rounded-sm shadow-2xl relative overflow-hidden">
+                  {/* Decorative inner golden bezel */}
+                  <div className="absolute inset-0 border border-[#d4af37]/10 pointer-events-none rounded-sm" />
+
+                  {/* STUDY CENTER TAB */}
+                  <button
+                    onClick={() => {
+                      setActiveFolderTab("study");
+                      try {
+                        window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
+                          detail: { targetId: "cabinet-stage", label: "Study Center" }
+                        }));
+                      } catch (e) {}
+                    }}
+                    className={`group py-3.5 px-2 text-center rounded-sm transition-all relative border flex flex-col items-center justify-center cursor-pointer ${
+                      activeFolderTab === "study"
+                        ? "bg-gradient-to-b from-[#d4af37]/25 to-[#d4af37]/5 border-[#d4af37] text-[#ffd754] shadow-[0_0_20px_rgba(212,175,55,0.25)]"
+                        : "bg-[#000a1a]/45 border-slate-800 text-gray-400 hover:text-white hover:border-slate-700 hover:bg-[#001233]/45"
+                    }`}
+                  >
+                    {/* Brass drawer label pull handle handle visual */}
+                    <div className={`w-12 h-2.5 rounded-b-sm border-b border-x mb-2 transition-colors ${
+                      activeFolderTab === "study" ? "border-[#d4af37]/70" : "border-gray-600/40"
+                    }`} />
+                    <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em]">
+                      I. STUDY CENTER
+                    </span>
+                    <span className="text-[7.5px] sm:text-[8px] font-sans opacity-60 mt-0.5 hidden sm:block">
+                      Basic Laws & Case Study
+                    </span>
+                  </button>
+
+                  {/* EVIDENCE LOCKER TAB */}
+                  <button
+                    onClick={() => {
+                      setActiveFolderTab("vault");
+                      try {
+                        window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
+                          detail: { targetId: "cabinet-stage", label: "Evidence Locker" }
+                        }));
+                      } catch (e) {}
+                    }}
+                    className={`group py-3.5 px-2 text-center rounded-sm transition-all relative border flex flex-col items-center justify-center cursor-pointer ${
+                      activeFolderTab === "vault"
+                        ? "bg-gradient-to-b from-[#d4af37]/25 to-[#d4af37]/5 border-[#d4af37] text-[#ffd754] shadow-[0_0_20px_rgba(212,175,55,0.25)]"
+                        : "bg-[#000a1a]/45 border-slate-800 text-gray-400 hover:text-white hover:border-slate-700 hover:bg-[#001233]/45"
+                    }`}
+                  >
+                    {/* Brass drawer label pull handle handle visual */}
+                    <div className={`w-12 h-2.5 rounded-b-sm border-b border-x mb-2 transition-colors ${
+                      activeFolderTab === "vault" ? "border-[#d4af37]/70" : "border-gray-600/40"
+                    }`} />
+                    <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em]">
+                      II. EVIDENCE ROOM
+                    </span>
+                    <span className="text-[7.5px] sm:text-[8px] font-sans opacity-60 mt-0.5 hidden sm:block">
+                      Library & Impact Data
+                    </span>
+                  </button>
+
+                  {/* DISPATCH CENTER TAB */}
+                  <button
+                    onClick={() => {
+                      setActiveFolderTab("dispatch");
+                      try {
+                        window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
+                          detail: { targetId: "cabinet-stage", label: "Dispatch Room" }
+                        }));
+                      } catch (e) {}
+                    }}
+                    className={`group py-3.5 px-2 text-center rounded-sm transition-all relative border flex flex-col items-center justify-center cursor-pointer ${
+                      activeFolderTab === "dispatch"
+                        ? "bg-gradient-to-b from-[#d4af37]/25 to-[#d4af37]/5 border-[#d4af37] text-[#ffd754] shadow-[0_0_20px_rgba(212,175,55,0.25)]"
+                        : "bg-[#000a1a]/45 border-slate-800 text-gray-400 hover:text-white hover:border-slate-700 hover:bg-[#001233]/45"
+                    }`}
+                  >
+                    {/* Brass drawer label pull handle handle visual */}
+                    <div className={`w-12 h-2.5 rounded-b-sm border-b border-x mb-2 transition-colors ${
+                      activeFolderTab === "dispatch" ? "border-[#d4af37]/70" : "border-gray-600/40"
+                    }`} />
+                    <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em]">
+                      III. DISPATCH ROOM
+                    </span>
+                    <span className="text-[7.5px] sm:text-[8px] font-sans opacity-60 mt-0.5 hidden sm:block">
+                      Chronicles, Blog & News
+                    </span>
+                  </button>
+                </div>
+
+                {/* Cabinet Stage Anchor to center viewport during slides */}
+                <div id="cabinet-stage" className="h-0" />
+              </div>
+            </React.Fragment>
+          );
         }
 
         return (
