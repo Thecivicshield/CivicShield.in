@@ -27,7 +27,7 @@ export default function FilingCabinetNavigation() {
 
       // Sound effects removed by user request
 
-      // Step 2: Retrieve file folder (300ms later)
+      // Step 2: Retrieve file folder (400ms later)
       setTimeout(() => {
         setCabinetState(prev => ({ ...prev, status: "retrieving" }));
         
@@ -38,19 +38,19 @@ export default function FilingCabinetNavigation() {
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      }, 300);
+      }, 400);
 
-      // Step 3: Closing cabinet (750ms later)
+      // Step 3: Closing cabinet (3400ms later - folder stays on screen for 3.0 seconds)
       setTimeout(() => {
         setCabinetState(prev => ({ ...prev, status: "closing" }));
         
         // Sound effects removed by user request
-      }, 750);
+      }, 3400);
 
-      // Step 4: Finish (950ms later)
+      // Step 4: Finish (4000ms later)
       setTimeout(() => {
         setCabinetState({ status: "idle", label: "", targetId: null });
-      }, 980);
+      }, 4000);
     };
 
     window.addEventListener("trigger-cabinet-nav", handleTriggerCabinet);

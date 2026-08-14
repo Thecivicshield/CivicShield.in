@@ -145,7 +145,7 @@ export default function EvidenceFolderView({ item, onClose }: EvidenceFolderView
                     METRIC_SIZE:
                   </span>
                   <div className="text-xs text-gray-700 font-mono font-bold">
-                    {item.fileSize.toUpperCase()}
+                    {(item.fileSize || "Dynamic").toUpperCase()}
                   </div>
                 </div>
 
@@ -186,7 +186,7 @@ export default function EvidenceFolderView({ item, onClose }: EvidenceFolderView
           {/* Footer controls */}
           <div className="mt-6 pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 items-center justify-between relative z-10">
             <span className="text-[10px] text-gray-400 font-mono">
-              FORM CODE: CIV_SHIELD_FILE_{item.id.toUpperCase().slice(0, 6)}
+              FORM CODE: CIV_SHIELD_FILE_{(item.id || "").toUpperCase().slice(0, 6)}
             </span>
 
             <div className="flex gap-3 w-full sm:w-auto">

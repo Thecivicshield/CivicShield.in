@@ -23,6 +23,7 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
   const [verifiedRating, setVerifiedRating] = useState<number>(100);
   const [pagesRead, setPagesRead] = useState<number>(1);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [pageFlipTrigger, setPageFlipTrigger] = useState(false);
 
   // Sound feedback on open/close
   useEffect(() => {
@@ -31,6 +32,12 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
       setCryptographicStatus("pending");
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    setPageFlipTrigger(true);
+    const timer = setTimeout(() => setPageFlipTrigger(false), 450);
+    return () => clearTimeout(timer);
+  }, [pagesRead]);
 
   if (!item) return null;
 
@@ -150,13 +157,6 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
         return { subHeader: "", heading: "", body: "", citation: "" };
     }
   };
-
-  const [pageFlipTrigger, setPageFlipTrigger] = useState(false);
-  useEffect(() => {
-    setPageFlipTrigger(true);
-    const timer = setTimeout(() => setPageFlipTrigger(false), 450);
-    return () => clearTimeout(timer);
-  }, [pagesRead]);
 
   const activePage = getPageContent(pagesRead);
 
@@ -352,7 +352,7 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
               {/* Direct Link Controls */}
               <div className="p-4 border-t border-[#d4af37]/15 flex flex-wrap gap-3 items-center justify-between bg-[#000d26]/80 backdrop-blur-md relative z-10">
                 <span className="text-[9px] font-mono text-[#00f0ff] tracking-widest uppercase">
-                  REGISTRY ID: X_{item.id.slice(0, 8).toUpperCase()}
+                  REGISTRY ID: X_{(item.id || "").slice(0, 8).toUpperCase()}
                 </span>
 
                 <div className="flex items-center gap-2">
@@ -499,11 +499,11 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                       </div>
                       <div>
                         <span className="text-gray-400 text-[8px] block uppercase tracking-wider">Storage Format</span>
-                        <span className="text-white font-bold">{item.type.toUpperCase()}</span>
+                        <span className="text-white font-bold">{(item.type || "pdf").toUpperCase()}</span>
                       </div>
                       <div>
                         <span className="text-gray-400 text-[8px] block uppercase tracking-wider">File Size</span>
-                        <span className="text-white font-bold">{item.fileSize.toUpperCase()}</span>
+                        <span className="text-white font-bold">{(item.fileSize || "Dynamic").toUpperCase()}</span>
                       </div>
                     </div>
 

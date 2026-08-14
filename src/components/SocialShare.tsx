@@ -72,7 +72,11 @@ export default function SocialShare({ title, text = "", shareUrl, inline = false
         setCopied(false);
         setInstaNotification(false);
       }, 3500);
-      window.open("https://www.instagram.com/", "_blank", "referrerpolicy=no-referrer");
+      try {
+        window.open("https://www.instagram.com/", "_blank", "referrerpolicy=no-referrer");
+      } catch (openErr) {
+        console.warn("Failed to open window, probably blocked by sandbox:", openErr);
+      }
     } catch (err) {
       console.error("Failed to copy link for Instagram: ", err);
     }
