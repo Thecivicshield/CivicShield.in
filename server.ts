@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import { initializeApp } from "firebase/app";
 import { initializeFirestore, doc, setDoc, getDoc, Firestore, setLogLevel } from "firebase/firestore";
 import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog } from "./src/types";
+import { getAutonomousLegalResponse } from "./src/utils/legalAdvisor";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -695,60 +696,14 @@ app.post("/api/upload", (req, res) => {
   }
 });
 
-// Smart context-matching offline fallback engine for Civic Shield
-function getOfflineSmartAnswer(text: string): { answered: boolean; answer?: string; repliedBy?: string } {
-  const query = text.toLowerCase();
-
-  if (query.includes("detained") || query.includes("arrest") || query.includes("police") || query.includes("stop") || query.includes("officer") || query.includes("cop") || query.includes("free to go")) {
-    return {
-      answered: true,
-      repliedBy: "AI Shield (Offline Guard)",
-      answer: "Civic Shield Stop Protocol:\n\n1. Confirm Status: Calmly ask, 'Am I being detained, or am I free to go?' If free to go, walk away.\n2. Inquire for Reason: If detained, ask, 'What is the specific reasonable suspicion for my detainment?' Forces a verbal record.\n3. Question Mandates: Ask, 'Am I required by law to provide identity under this specific detainment?'\n\nAlways remain respectful, avoid sudden movements, and record the interaction if safely possible. Our de-escalation checklist is in the Evidence Locker!"
-    };
-  }
-
-  if (query.includes("rti") || query.includes("right to information") || query.includes("transparency") || query.includes("public record") || query.includes("budget") || query.includes("government")) {
-    return {
-      answered: true,
-      repliedBy: "AI Shield (Offline Guard)",
-      answer: "RTI (Right to Information) Guide:\n\nUnder statutory transparency regulations (e.g., RTI Act, 2005), any citizen has the right to query public authorities regarding expenditure, orders, and administrative logs:\n- Submission: Formulate standard direct questions and submit to the designated Public Information Officer (PIO).\n- 30-Day Mandate: Authorities must supply the response within 30 days.\n- Templates: Download ready-made pre-formatted RTI draft boilerplate worksheets directly from our Evidence Locker!"
-    };
-  }
-
-  if (query.includes("pro-se") || query.includes("pro se") || query.includes("party-in-person") || query.includes("party in person") || query.includes("represent") || query.includes("attorney") || query.includes("lawyer") || query.includes("court")) {
-    return {
-      answered: true,
-      repliedBy: "AI Shield (Offline Guard)",
-      answer: "Party-in-Person (Pro-Se) Self-Representation Protocol:\n\nYou possess an absolute statutory right to represent yourself and plead your own case in court or tribunals (e.g. under Section 32 of the Advocates Act in India):\n- Cost Benefit: Useful for tenant disagreements, small consumer disputes, or minor municipal citations without heavy retainers.\n- Submission Rules: Ensure replies are cleanly numbered, indexed sequentially, and served officially to the registrar.\n- Templates: Ready boilerplate files are available in our Evidence Locker."
-    };
-  }
-
-  if (query.includes("traffic") || query.includes("car") || query.includes("vehicle") || query.includes("roadside") || query.includes("license") || query.includes("helmet") || query.includes("challan")) {
-    return {
-      answered: true,
-      repliedBy: "AI Shield (Offline Guard)",
-      answer: "Roadside Traffic Compliance Guidelines:\n\nDuring traffic or roadside stop checks:\n- Document Production: Lawfully requested, you must present your license, registration (RC), insurance, and PUC certificate. Digital copies (via DigiLocker or mParivahan) are completely valid and equal to physical files.\n- Search boundary: An officer cannot search the vehicle's interior gloveboxes or trunks without a valid warrant, consent, or probable cause.\n- Download our pocket-sized Traffic Compliance Handbook inside the Evidence Locker."
-    };
-  }
-
-  if (query.includes("rent") || query.includes("tenant") || query.includes("landlord") || query.includes("eviction") || query.includes("lease") || query.includes("apartment") || query.includes("housing")) {
-    return {
-      answered: true,
-      repliedBy: "AI Shield (Offline Guard)",
-      answer: "Tenant & Housing Dispute Rights:\n\nYour residence is protected by municipal tenancy rules:\n- Eviction Control: A landlord cannot evict you arbitrarily without giving a formal written notice period, usually 15-30 days.\n- Security Deposit: Withholding deposits is illegal unless structural damages are formally itemized and photographed.\n- Arbitrations: In case of threats or arbitrary utilities shutdown, immediately appeal to the local rent tribunal."
-    };
-  }
-
-  if (query.includes("help") || query.includes("recommend") || query.includes("how to") || query.includes("where") || query.includes("guide") || query.includes("book")) {
-    return {
-      answered: true,
-      repliedBy: "AI Shield (Offline Guard)",
-      answer: "How to begin exercising your civil liberties:\n\n1. Review 'The Justice Shield' board to unmask public misconceptions and legal realities.\n2. Open the 'Evidence & Legal Locker' section to download free procedural guide PDFs, RTI templates, and de-escalation protocol videos.\n3. Submit a specific topic in this Chat for guidance."
-    };
-  }
-
+// Autonomous offline knowledge & response engine for Civic Shield (Key-Free)
+function getOfflineSmartAnswer(text: string): { answered: boolean; answer: string; repliedBy: string; category?: string } {
+  const result = getAutonomousLegalResponse(text);
   return {
-    answered: false
+    answered: result.answered,
+    answer: result.answer,
+    repliedBy: result.repliedBy,
+    category: result.category
   };
 }
 

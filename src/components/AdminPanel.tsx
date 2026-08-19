@@ -5,6 +5,7 @@ import {
   Github, RefreshCw, LogOut, CheckCircle2, AlertTriangle, Key
 } from "lucide-react";
 import { LayoutBlock, BlogPost, AnonymousQuestion, NewsletterSub, SocialPost, SentNewsletter, NotificationLog, EvidenceItem } from "../types";
+import { getAutonomousLegalResponse } from "../utils/legalAdvisor";
 
 interface AdminPanelProps {
   blocks: LayoutBlock[];
@@ -488,24 +489,25 @@ export default function AdminPanel({
     }
   };
 
-  // Trigger Gemini Draft assistance within Admin Panel
+  // Trigger Smart AI / Autonomous Draft assistance within Admin Panel (Key-Free)
   const handleDraftGeminiAnswer = async (qId: string, originalQuestionText: string) => {
     setReplies(prev => ({ ...prev, [qId]: "Drafting smart campaign advocate stance..." }));
     try {
       const response = await fetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Submitting same text will re-query Gemini block, which responds back
         body: JSON.stringify({ text: originalQuestionText })
       });
       const data = await response.json();
-      if (data.answer) {
+      if (data && data.answer) {
         setReplies(prev => ({ ...prev, [qId]: data.answer }));
       } else {
-        setReplies(prev => ({ ...prev, [qId]: "Gemini API drafted. Could not parse answer part. Please write custom text." }));
+        const auto = getAutonomousLegalResponse(originalQuestionText);
+        setReplies(prev => ({ ...prev, [qId]: auto.answer }));
       }
     } catch (err: any) {
-      setReplies(prev => ({ ...prev, [qId]: "Offline draft assistance. Please compose manual response: " + err.message }));
+      const auto = getAutonomousLegalResponse(originalQuestionText);
+      setReplies(prev => ({ ...prev, [qId]: auto.answer }));
     }
   };
 

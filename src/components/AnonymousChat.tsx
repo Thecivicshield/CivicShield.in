@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   MessageSquare, X, Send, ShieldQuestion, BadgeHelp, Info, 
   Sparkles, UserCheck, Trash2, FileText, Download, Cpu, HelpCircle,
-  Plus, Link2, UploadCloud, CheckCircle2, ChevronDown, ChevronUp, RefreshCw
+  Plus, Link2, UploadCloud, CheckCircle2, ChevronDown, ChevronUp, RefreshCw,
+  Scale, BookOpen, ShieldCheck, CornerDownLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { AnonymousQuestion, EvidenceItem } from "../types";
+import { getAutonomousLegalResponse } from "../utils/legalAdvisor";
 
 interface AnonymousChatProps {
   questions: AnonymousQuestion[];
@@ -177,34 +179,54 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
     }
   }, [conversation]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!messageText.trim()) return;
+  const QUICK_PROMPTS = [
+    { label: "🚦 Traffic Stop Rights", text: "What are my exact rights during a traffic stop check, and are digital documents on DigiLocker valid?" },
+    { label: "🎥 Filming Police", text: "Do I have the constitutional right to record police officers in public spaces?" },
+    { label: "⚖️ Pro-Se Representation", text: "How do I represent myself in court as a party-in-person without an expensive lawyer?" },
+    { label: "📑 Filing an RTI", text: "How do I draft and file an RTI application to get government spending records?" },
+    { label: "🏠 Tenant Eviction Shield", text: "Can my landlord evict me without notice or cut off electricity and water?" },
+    { label: "🛡️ Free Legal Aid NALSA", text: "Who qualifies for 100% free legal aid and how can I apply at DLSA/NALSA?" },
+    { label: "👮 FIR Registration", text: "What should I do if the police station refuses to register my FIR?" }
+  ];
 
-    const userMsg = messageText.trim();
+  const handleSubmit = async (e?: React.FormEvent, customMsg?: string) => {
+    if (e) e.preventDefault();
+    const textToSend = (customMsg !== undefined ? customMsg : messageText).trim();
+    if (!textToSend) return;
+
     setMessageText("");
     
     // Add user message to local stream immediately
     const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setConversation(prev => [...prev, { sender: 'user', text: userMsg, time: userTime }]);
+    setConversation(prev => [...prev, { sender: 'user', text: textToSend, time: userTime }]);
     setLoading(true);
 
     try {
       // Send to full-stack API
-      const result = await onNewQuestion(userMsg);
-      if (result) {
-        // Display the specific real-time answer or custom fallback returned by the backend
+      const result = await onNewQuestion(textToSend);
+      if (result && result.answer) {
+        // Display the specific real-time answer returned by the backend
         setConversation(prev => [...prev, { 
           sender: 'bot', 
-          text: result.answer || "Your anonymous question has been successfully submitted to the campaign managers. It will appear on our Public Q&A wall once answered!", 
+          text: result.answer, 
+          time: userTime 
+        }]);
+      } else {
+        // Instant Autonomous Engine Fallback (Guarantees immediate legal advice without API key)
+        const autoAnswer = getAutonomousLegalResponse(textToSend);
+        setConversation(prev => [...prev, { 
+          sender: 'bot', 
+          text: autoAnswer.answer, 
           time: userTime 
         }]);
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Backend question submission fallback:", err);
+      // Autonomous Instant Response even on network disconnect
+      const autoAnswer = getAutonomousLegalResponse(textToSend);
       setConversation(prev => [...prev, { 
         sender: 'bot', 
-        text: "Sorry, I couldn't process that. Your question was saved for manual inspection.", 
+        text: autoAnswer.answer, 
         time: userTime 
       }]);
     } finally {
@@ -398,12 +420,18 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                           className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                         >
                           <div 
-                            className={`max-w-[85%] rounded-sm px-3.5 py-2.5 text-xs shadow-md leading-relaxed ${
+                            className={`max-w-[90%] rounded-sm px-3.5 py-2.5 text-xs shadow-md leading-relaxed whitespace-pre-wrap font-sans ${
                               msg.sender === 'user'
-                                ? 'bg-[#d4af37] text-[#001233] font-bold shadow-[0_0_10px_rgba(212,175,55,0.2)]'
-                                : 'bg-[#001233] border border-gray-800 text-gray-100'
+                                ? 'bg-[#d4af37] text-[#001233] font-semibold shadow-[0_0_10px_rgba(212,175,55,0.2)]'
+                                : 'bg-[#001233] border border-[#d4af37]/25 text-gray-100'
                             }`}
                           >
+                            {msg.sender === 'bot' && (
+                              <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#d4af37] pb-1.5 mb-1.5 border-b border-[#d4af37]/15">
+                                <ShieldCheck className="w-3 h-3 text-[#d4af37]" />
+                                <span>Civic Legal Advocate</span>
+                              </div>
+                            )}
                             {msg.text}
                           </div>
                           <span className="text-[8px] text-gray-500 mt-1 px-1 font-mono tracking-wider">{msg.time}</span>
@@ -413,21 +441,36 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                       {loading && (
                         <div className="flex items-center gap-2 text-[10px] text-[#d4af37]/80 italic font-mono pl-1">
                           <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-ping" />
-                          Advocate node decrypting response...
+                          Advocate node formulating statutory guidance...
                         </div>
                       )}
                     </div>
 
+                    {/* Quick Inquiry Prompts Carousel */}
+                    <div className="px-3 py-2 bg-[#001233]/70 border-t border-[#d4af37]/10 flex items-center gap-1.5 overflow-x-auto no-scrollbar select-none">
+                      <span className="text-[8px] font-mono text-gray-400 shrink-0 uppercase tracking-wider font-bold">Quick:</span>
+                      {QUICK_PROMPTS.map((qp, qpIdx) => (
+                        <button
+                          key={qpIdx}
+                          onClick={() => handleSubmit(undefined, qp.text)}
+                          disabled={loading}
+                          className="shrink-0 text-[9px] font-mono px-2 py-1 bg-[#001a4d] hover:bg-[#d4af37] text-gray-300 hover:text-[#001233] border border-[#d4af37]/20 rounded-full transition-all cursor-pointer whitespace-nowrap active:scale-95 disabled:opacity-50"
+                        >
+                          {qp.label}
+                        </button>
+                      ))}
+                    </div>
+
                     {/* Form input */}
                     <form 
-                      onSubmit={handleSubmit}
+                      onSubmit={(e) => handleSubmit(e)}
                       className="p-2.5 border-t border-[#d4af37]/15 bg-[#001233]/90 flex gap-2"
                     >
                       <input
                         type="text"
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
-                        placeholder="Inquire anonymously about codes..."
+                        placeholder="Inquire about police stops, RTI, tenant rights, pro-se..."
                         className="flex-1 px-3.5 py-2.5 text-xs rounded-sm border border-gray-800 focus:border-[#d4af37] focus:outline-none text-white bg-[#001a4d] placeholder-gray-500 font-sans"
                       />
                       <motion.button
