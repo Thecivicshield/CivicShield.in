@@ -37,13 +37,18 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
   // Track scroll position to trigger shrinkage & frosted enhancement
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 25) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
+      try {
+        const currentY = window.scrollY || window.pageYOffset || 0;
+        if (currentY > 25) {
+          setIsScrolled(true);
+        } else {
+          setIsScrolled(false);
+        }
+      } catch (err) {
+        console.warn("Header scroll listener error:", err);
       }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -52,24 +57,45 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
     const sections = ["pillars", "impact-metrics", "justice-shield", "evidence", "blog", "timeline"];
     const observerOptions = {
       root: null,
-      rootMargin: "-40% 0px -50% 0px", // triggers when section dominates screen
+      rootMargin: "-30% 0px -40% 0px", // triggers when section dominates screen
       threshold: 0.1,
     };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
+    let observer: IntersectionObserver | null = null;
+    try {
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      }, observerOptions);
+
+      sections.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && observer) observer.observe(el);
       });
-    }, observerOptions);
+    } catch (err) {
+      console.warn("Header observer init error:", err);
+    }
 
-    sections.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    const interval = setInterval(() => {
+      if (observer) {
+        sections.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            try {
+              observer?.observe(el);
+            } catch (e) {}
+          }
+        });
+      }
+    }, 2500);
 
-    return () => observer.disconnect();
+    return () => {
+      clearInterval(interval);
+      if (observer) observer.disconnect();
+    };
   }, []);
 
   const handleToggleClick = () => {

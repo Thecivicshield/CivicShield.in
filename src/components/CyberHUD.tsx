@@ -132,7 +132,11 @@ export default function CyberHUD() {
   // Auto scroll terminal logs
   useEffect(() => {
     if (terminalBottomRef.current) {
-      terminalBottomRef.current.scrollIntoView({ behavior: "smooth" });
+      try {
+        terminalBottomRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (e) {
+        // Fallback
+      }
     }
   }, [terminalLogs]);
 

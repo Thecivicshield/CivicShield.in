@@ -63,26 +63,48 @@ export default function App() {
 
   const [activeFolderTab, setActiveFolderTab] = useState<"study" | "vault" | "dispatch">("study");
 
-  // Automatically switch tabs if an anchor link is triggered
+  // Automatically switch tabs if an anchor link or cabinet navigation is triggered
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (!hash) return;
-      if (hash === "#evidence" || hash === "#metrics" || hash === "#impact-metrics" || hash.includes("ev_") || hash.includes("evidence")) {
+    const handleTargetSwitch = (target: string) => {
+      if (!target) return;
+      const lower = target.toLowerCase();
+      if (lower.includes("evidence") || lower.includes("metric") || lower.includes("vault") || lower.includes("ev_")) {
         setActiveFolderTab("vault");
-      } else if (hash === "#pillars" || hash === "#laws" || hash === "#cases" || hash === "#justice-shield" || hash === "#constitutional-network" || hash.includes("shield") || hash.includes("network")) {
+      } else if (lower.includes("pillar") || lower.includes("law") || lower.includes("case") || lower.includes("shield") || lower.includes("network") || lower.includes("study")) {
         setActiveFolderTab("study");
-      } else if (hash === "#blog" || hash === "#timeline" || hash === "#newsletter" || hash.includes("dispatch") || hash.includes("road")) {
+      } else if (lower.includes("blog") || lower.includes("timeline") || lower.includes("news") || lower.includes("social") || lower.includes("dispatch") || lower.includes("road")) {
         setActiveFolderTab("dispatch");
       }
     };
+
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        handleTargetSwitch(hash);
+      }
+    };
+
+    const handleCabinetNavEvent = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent)?.detail;
+        if (detail?.targetId) {
+          handleTargetSwitch(detail.targetId);
+        }
+      } catch (err) {
+        console.warn("Error handling cabinet nav event:", err);
+      }
+    };
+
     window.addEventListener("hashchange", handleHashChange, { passive: true });
     window.addEventListener("popstate", handleHashChange, { passive: true });
+    window.addEventListener("trigger-cabinet-nav", handleCabinetNavEvent as EventListener);
+
     // Run once on load
     handleHashChange();
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
       window.removeEventListener("popstate", handleHashChange);
+      window.removeEventListener("trigger-cabinet-nav", handleCabinetNavEvent as EventListener);
     };
   }, [data]);
 
@@ -96,9 +118,13 @@ export default function App() {
 
       if (sectionId) {
         setTimeout(() => {
-          const element = document.getElementById(sectionId);
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth" });
+          try {
+            const element = document.getElementById(sectionId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth" });
+            }
+          } catch (e) {
+            console.warn("Scroll on intro complete:", e);
           }
         }, 250);
       }

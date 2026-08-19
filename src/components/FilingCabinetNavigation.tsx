@@ -31,12 +31,31 @@ export default function FilingCabinetNavigation() {
       setTimeout(() => {
         setCabinetState(prev => ({ ...prev, status: "retrieving" }));
         
-        // Sound effects removed by user request
+        // Scroll page programmatically to section with resilient retries and fallback
+        if (targetId) {
+          const attemptScroll = () => {
+            try {
+              const element = document.getElementById(targetId);
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "start" });
+                return true;
+              }
+            } catch (err) {
+              console.warn("scrollIntoView fallback triggered:", err);
+              const element = document.getElementById(targetId);
+              if (element) {
+                const rect = element.getBoundingClientRect();
+                window.scrollTo({ top: window.scrollY + rect.top - 80, behavior: "smooth" });
+                return true;
+              }
+            }
+            return false;
+          };
 
-        // Scroll page programmatically to section
-        const element = document.getElementById(targetId);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
+          if (!attemptScroll()) {
+            setTimeout(attemptScroll, 120);
+            setTimeout(attemptScroll, 300);
+          }
         }
       }, 400);
 

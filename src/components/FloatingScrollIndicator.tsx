@@ -153,20 +153,79 @@ export default function FloatingScrollIndicator() {
   // For the detail popover card
   const [selectedDetail, setSelectedDetail] = useState<typeof SECTION_DETAILS[keyof typeof SECTION_DETAILS] | null>(null);
 
-  // Scroll position to fill the glowing shield/sword
+  // Scroll position to fill the glowing shield/sword with robust fallbacks
   const [scrollPercent, setScrollPercent] = useState(0);
 
   useEffect(() => {
-    return scrollYProgress.onChange((latest) => {
-      setScrollPercent(Math.min(100, Math.max(0, latest * 100)));
-    });
+    let unsubscribe: (() => void) | undefined;
+
+    const updateScrollPercent = (progressValue?: number) => {
+      try {
+        if (typeof progressValue === "number" && !isNaN(progressValue)) {
+          setScrollPercent(Math.min(100, Math.max(0, progressValue * 100)));
+        } else {
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const currentScroll = window.scrollY || window.pageYOffset || 0;
+          const progress = docHeight > 0 ? (currentScroll / docHeight) * 100 : 0;
+          setScrollPercent(Math.min(100, Math.max(0, progress)));
+        }
+      } catch (err) {
+        console.warn("Scroll calculation error handled:", err);
+      }
+    };
+
+    try {
+      if (scrollYProgress && typeof scrollYProgress.on === "function") {
+        unsubscribe = scrollYProgress.on("change", (latest: number) => {
+          updateScrollPercent(latest);
+        });
+      } else if (scrollYProgress && typeof (scrollYProgress as any).onChange === "function") {
+        unsubscribe = (scrollYProgress as any).onChange((latest: number) => {
+          updateScrollPercent(latest);
+        });
+      }
+    } catch (e) {
+      console.warn("Motion value listener subscription fallback:", e);
+    }
+
+    const handleWindowScroll = () => {
+      if (!unsubscribe) {
+        updateScrollPercent();
+      }
+    };
+
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    // Initial calculate
+    updateScrollPercent();
+
+    return () => {
+      if (unsubscribe) {
+        try {
+          unsubscribe();
+        } catch (e) {}
+      }
+      window.removeEventListener("scroll", handleWindowScroll);
+    };
   }, [scrollYProgress]);
 
   // Track sections crossing the viewport to trigger "✓ Right Discovered"
   useEffect(() => {
+    const targetIds = [
+      "hero",
+      "pillars",
+      "impact-metrics",
+      "justice-shield",
+      "evidence",
+      "timeline",
+      "constitutional-network",
+      "social-feed",
+      "blog",
+      "newsletter"
+    ];
+
     const observerOptions = {
       root: null,
-      rootMargin: "-25% 0px -40% 0px", // Trigger when section occupies the middle portion of viewport
+      rootMargin: "-20% 0px -30% 0px", // Trigger when section occupies the middle portion of viewport
       threshold: 0.1,
     };
 
@@ -200,29 +259,38 @@ export default function FloatingScrollIndicator() {
       });
     };
 
-    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+    let observer: IntersectionObserver | null = null;
+    try {
+      observer = new IntersectionObserver(handleIntersection, observerOptions);
+      targetIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && observer) {
+          observer.observe(el);
+        }
+      });
+    } catch (e) {
+      console.warn("IntersectionObserver init handled:", e);
+    }
 
-    // Observe all possible sections in DOM
-    const targetIds = [
-      "hero",
-      "pillars",
-      "impact-metrics",
-      "justice-shield",
-      "evidence",
-      "timeline",
-      "constitutional-network",
-      "social-feed",
-      "blog",
-      "newsletter"
-    ];
-
-    targetIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    // Refresh observer on DOM changes / scroll
+    const checkVisibleInterval = setInterval(() => {
+      if (observer) {
+        targetIds.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            try {
+              observer?.observe(el);
+            } catch (e) {}
+          }
+        });
+      }
+    }, 2000);
 
     return () => {
-      observer.disconnect();
+      clearInterval(checkVisibleInterval);
+      if (observer) {
+        observer.disconnect();
+      }
     };
   }, []);
 
