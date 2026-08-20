@@ -131,26 +131,23 @@ export default function App() {
   }, [data]);
 
   const handleEnterWebsite = (sectionId?: string) => {
-    // Delay unmounting the intro gate by 1200ms to allow the immersive golden liquid melt curtain animation to finish
-    setTimeout(() => {
-      setShowIntro(false);
-      try {
-        sessionStorage.setItem("civic_shield_intro_passed", "true");
-      } catch (e) {}
+    setShowIntro(false);
+    try {
+      sessionStorage.setItem("civic_shield_intro_passed", "true");
+    } catch (e) {}
 
-      if (sectionId) {
-        setTimeout(() => {
-          try {
-            const element = document.getElementById(sectionId);
-            if (element) {
-              element.scrollIntoView({ behavior: "smooth" });
-            }
-          } catch (e) {
-            console.warn("Scroll on intro complete:", e);
+    if (sectionId) {
+      setTimeout(() => {
+        try {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
           }
-        }, 250);
-      }
-    }, 1200);
+        } catch (e) {
+          console.warn("Scroll on intro complete:", e);
+        }
+      }, 100);
+    }
   };
 
   // Track unique website visit on mount
