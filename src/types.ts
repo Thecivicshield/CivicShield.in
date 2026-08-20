@@ -105,15 +105,58 @@ export interface SentNewsletter {
   recipientCount: number;
 }
 
+export interface BookReview {
+  id: string;
+  bookTitle: string;
+  chapterTitle?: string;
+  reviewerName: string;
+  rating: number;
+  reviewText: string;
+  date: string;
+  verified?: boolean;
+}
+
+export interface CaseFile {
+  id: string;
+  caseNumber?: string;
+  title: string;
+  category?: string;
+  status?: 'open' | 'settled' | 'archived' | 'precedent';
+  description: string;
+  type: 'pdf' | 'video' | 'spreadsheet' | 'text' | 'image';
+  fileName: string;
+  fileUrl: string;
+  uploadedAt: string;
+  fileSize: string;
+  verifiedBy: string;
+}
+
+export interface VisitorMetrics {
+  totalVisitors: number;
+  gateEntries?: number;
+  chatInteractions?: number;
+  handbookDownloads: number;
+  templatesDeployed: number;
+  districtsEmpowered: number;
+  consultationsGiven: number;
+  pagesRead?: number;
+  reviewsCount?: number;
+  lastUpdated?: number;
+}
+
 export interface CivicShieldData {
   blocks: LayoutBlock[];
   posts: BlogPost[];
   evidence: EvidenceItem[];
+  caseFiles?: CaseFile[];
+  bookReviews?: BookReview[];
+  masterPasscode?: string;
   questions: AnonymousQuestion[];
   subscribers: NewsletterSub[];
   socialFeed?: SocialPost[];
   newsletters?: SentNewsletter[];
   notificationLogs?: NotificationLog[];
+  visitorStats?: VisitorMetrics;
   lastUpdated?: number;
 }
 

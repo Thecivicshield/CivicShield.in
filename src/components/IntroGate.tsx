@@ -1,283 +1,222 @@
 import React, { useEffect, useState } from "react";
-import { Shield, Scale, Gavel, Landmark, ChevronRight, Cpu } from "lucide-react";
+import { Shield, Scale, ChevronRight, Sparkles, Users, FileText, CheckCircle2, Landmark } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface IntroGateProps {
   onEnter: (sectionId?: string) => void;
+  visitorCount?: number;
+  subscriberCount?: number;
 }
 
-type IntroStep = "dark" | "blueprint-lines" | "shield-assemble" | "logo-appear" | "doors-open";
+export default function IntroGate({ 
+  onEnter, 
+  visitorCount = 14892, 
+  subscriberCount = 1480 
+}: IntroGateProps) {
+  const [stage, setStage] = useState<"crest" | "reveal" | "ready">("crest");
+  const [progress, setProgress] = useState(0);
 
-export default function IntroGate({ onEnter }: IntroGateProps) {
-  const [step, setStep] = useState<IntroStep>("dark");
-  const [consoleMsg, setConsoleMsg] = useState("INITIALIZING SECURE PROTOCOL...");
-  const [isUnlocked, setIsUnlocked] = useState(false);
-
-  // Map steps to sequential timing
   useEffect(() => {
-    const timers: { time: number; step: IntroStep; msg: string }[] = [
-      { time: 1000, step: "blueprint-lines", msg: "DRAWING GEOMETRIC COORDINATES & BLUEPRINT NETWORKS..." },
-      { time: 3000, step: "shield-assemble", msg: "CONSTRUCTING CONSTITUTIONAL INTEGRITY SHIELD..." },
-      { time: 5500, step: "logo-appear", msg: "AUTHORIZING CIVIL DECOY ACCESS KEY..." },
-      { time: 7800, step: "doors-open", msg: "DECRYPTION COMPLETE. OPENING CLASSIFIED VAULT DOORS..." },
-    ];
+    // Stage 1: Crest draw and glow
+    const t1 = setTimeout(() => setStage("reveal"), 900);
+    // Stage 2: Full branding and statistics synchronized
+    const t2 = setTimeout(() => setStage("ready"), 1900);
 
-    const activeTimers = timers.map((t) =>
-      setTimeout(() => {
-        setStep(t.step);
-        setConsoleMsg(t.msg);
-        if (t.step === "doors-open") {
-          setIsUnlocked(true);
-          // Complete the transition and enter website after doors slide open
-          setTimeout(() => {
-            onEnter();
-          }, 1800);
+    // Progress bar ticker (auto-transition at 100%)
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
         }
-      }, t.time)
-    );
+        return prev + 2.5;
+      });
+    }, 60);
 
     return () => {
-      activeTimers.forEach(clearTimeout);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearInterval(interval);
     };
-  }, [onEnter]);
+  }, []);
 
-  // Bypass directly to door opening
-  const handleBypass = () => {
-    if (step === "doors-open") return;
-    setStep("doors-open");
-    setConsoleMsg("BYPASS ENGAGED. OPENING ARCHIVE COVENANT DOORS...");
-    setIsUnlocked(true);
-    setTimeout(() => {
-      onEnter();
-    }, 1800);
+  const handleEnterClick = (sectionId?: string) => {
+    onEnter(sectionId);
   };
 
-  const stepIndex = ["dark", "blueprint-lines", "shield-assemble", "logo-appear", "doors-open"].indexOf(step);
-
   return (
-    <div className="fixed inset-0 w-full h-full bg-black overflow-hidden z-[100000] select-none font-sans">
+    <div className="fixed inset-0 w-full h-full bg-[#00081a] overflow-hidden z-[100000] select-none flex flex-col justify-between p-6 sm:p-10 font-sans">
       
-      {/* LEFT ARCHIVE DOOR */}
-      <motion.div
-        initial={{ x: "0%" }}
-        animate={{ x: step === "doors-open" ? "-100%" : "0%" }}
-        transition={{ duration: 1.8, ease: [0.77, 0, 0.175, 1] }}
-        className="absolute top-0 bottom-0 left-0 w-1/2 bg-gradient-to-r from-[#00020a] to-[#01091f] border-r border-[#d4af37]/30 overflow-hidden"
+      {/* Background Soft Atmospheric Radiance */}
+      <div className="absolute inset-0 bg-radial-at-c from-[#00173d]/60 via-[#000d26]/80 to-[#00081a] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#d4af37]/8 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* TOP BAR: CONSTITUTIONAL JURISDICTION BADGE */}
+      <motion.div 
+        initial={{ opacity: 0, y: -15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-5xl mx-auto flex items-center justify-between relative z-20 border-b border-[#d4af37]/20 pb-4"
       >
-        {/* Blueprint Grid Pattern */}
-        <div className="absolute inset-0 bg-grid-lines opacity-[0.06] pointer-events-none" />
-        
-        {/* Aesthetic Laser Scanlines */}
-        {stepIndex >= 1 && (
-          <motion.div
-            initial={{ y: "-100%" }}
-            animate={{ y: "100%" }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/35 to-transparent shadow-[0_0_8px_#d4af37]"
-          />
-        )}
-
-        {/* Blueprint Technical Annotations */}
-        <div className="absolute top-8 left-8 font-mono text-[8px] text-gray-500 space-y-1">
-          <div>VAULT_LOC: SECURE_CORE_01</div>
-          <div>JURIS_ID: DE_ESCALATE_AUDIT</div>
-          <div>SYS_AUTH: ESTABLISHED</div>
+        <div className="flex items-center gap-2.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#ffd754] animate-ping" />
+          <span className="font-mono text-[10px] sm:text-xs text-[#ffd754] uppercase tracking-[0.25em] font-semibold">
+            Civic Shield • Public Literacy Alliance
+          </span>
         </div>
 
-        <div className="absolute bottom-8 left-8 font-mono text-[8px] text-[#d4af37]/45 space-y-1">
-          <div>LAT: 45.1092° N / LONG: 122.6801° W</div>
-          <div>PRECEDENT INDEX: v4.9.2</div>
-        </div>
-
-        {/* Left half of the interlocking mechanical central lock */}
-        <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 z-50">
-          <motion.div
-            animate={{ rotate: isUnlocked ? -180 : 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="w-24 h-24 rounded-full border border-[#d4af37]/40 bg-black/95 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-          >
-            <div className="w-16 h-16 rounded-full border border-[#d4af37]/25 border-dashed" />
-          </motion.div>
-        </div>
-
-        {/* LEFT HALF OF GEOMETRIC SHIELD SVG (Aligned to the right edge to meet seamlessly) */}
-        <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 w-[320px] h-[320px] flex items-center justify-center overflow-hidden">
-          <div className="relative w-full h-full flex items-center justify-center">
-            {/* SVG Shield & Scale */}
-            <svg className="w-64 h-64 text-[#d4af37] opacity-80" viewBox="0 0 100 100" fill="none">
-              {/* Outer compass ring */}
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                strokeDasharray="2 4"
-                initial={{ rotate: 0 }}
-                animate={{ rotate: stepIndex >= 1 ? -180 : 0 }}
-                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-              />
-              {/* Shield Outline */}
-              <motion.path
-                d="M50 12 L82 24 L82 54 C82 72 68 84 50 88 C32 84 18 72 18 54 L18 24 Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: stepIndex >= 2 ? 1 : 0 }}
-                transition={{ duration: 2, ease: "easeInOut" }}
-              />
-              {/* Central Scales icon */}
-              <motion.path
-                d="M38 45 L62 45 M50 35 L50 68 M42 68 L58 68 M42 48 L50 54 L58 48"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: stepIndex >= 2 ? 1 : 0 }}
-                transition={{ duration: 1.5, delay: 0.8, ease: "easeInOut" }}
-              />
-            </svg>
-          </div>
+        <div className="hidden sm:flex items-center gap-4 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Repository Online
+          </span>
+          <span>Article 21 & 39A Protected</span>
         </div>
       </motion.div>
 
-      {/* RIGHT ARCHIVE DOOR */}
-      <motion.div
-        initial={{ x: "0%" }}
-        animate={{ x: step === "doors-open" ? "100%" : "0%" }}
-        transition={{ duration: 1.8, ease: [0.77, 0, 0.175, 1] }}
-        className="absolute top-0 bottom-0 right-0 w-1/2 bg-gradient-to-l from-[#00020a] to-[#01091f] border-l border-[#d4af37]/30 overflow-hidden"
-      >
-        {/* Blueprint Grid Pattern */}
-        <div className="absolute inset-0 bg-grid-lines opacity-[0.06] pointer-events-none" />
+      {/* CENTER: SYNCHRONIZED CREST, TYPOGRAPHY & MEASURABLE SUCCESS STATS */}
+      <div className="max-w-4xl mx-auto w-full my-auto flex flex-col items-center text-center relative z-20 px-4">
         
-        {/* Aesthetic Laser Scanlines */}
-        {stepIndex >= 1 && (
-          <motion.div
-            initial={{ y: "-100%" }}
-            animate={{ y: "100%" }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 2 }}
-            className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/35 to-transparent shadow-[0_0_8px_#d4af37]"
-          />
-        )}
+        {/* SYNCHRONIZED GOLDEN SHIELD & SCALES EMBLEM */}
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+          className="relative mb-6"
+        >
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-b from-[#00173d] to-[#000a1a] border-2 border-[#d4af37] p-4 flex items-center justify-center shadow-[0_0_35px_rgba(212,175,55,0.35)] relative group">
+            {/* Pulsing Aura Ring */}
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 rounded-full border border-dashed border-[#ffd754]/40"
+            />
 
-        {/* Blueprint Technical Annotations */}
-        <div className="absolute top-8 right-8 font-mono text-[8px] text-gray-500 text-right space-y-1">
-          <div>CORE_LOAD: OPTIMAL</div>
-          <div>SECURE_SHIELD: COMPLIANT</div>
-          <div>DATABASE: FIREBASE_READY</div>
-        </div>
-
-        <div className="absolute bottom-8 right-8 font-mono text-[8px] text-gray-500 text-right space-y-1">
-          <div>ENCRYPTION: SHIELD_PROT_V4</div>
-          <div>STATUS: CLASSIFIED_LEDGER</div>
-        </div>
-
-        {/* Right half of the interlocking mechanical central lock */}
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 z-50">
-          <motion.div
-            animate={{ rotate: isUnlocked ? 180 : 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="w-24 h-24 rounded-full border border-[#d4af37]/40 bg-black/95 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-          >
-            <div className="w-16 h-16 rounded-full border border-[#d4af37]/25 border-dashed" />
-          </motion.div>
-        </div>
-
-        {/* RIGHT HALF OF GEOMETRIC SHIELD SVG (Aligned to the left edge to meet seamlessly) */}
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 w-[320px] h-[320px] flex items-center justify-center overflow-hidden">
-          <div className="relative w-full h-full flex items-center justify-center">
-            {/* SVG Shield & Scale */}
-            <svg className="w-64 h-64 text-[#d4af37] opacity-80" viewBox="0 0 100 100" fill="none">
-              {/* Outer compass ring */}
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="currentColor"
-                strokeWidth="0.5"
-                strokeDasharray="2 4"
-                initial={{ rotate: 0 }}
-                animate={{ rotate: stepIndex >= 1 ? 180 : 0 }}
-                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-              />
+            <svg className="w-14 h-14 sm:w-16 sm:h-16 text-[#ffd754]" viewBox="0 0 100 100" fill="none">
               {/* Shield Outline */}
               <motion.path
                 d="M50 12 L82 24 L82 54 C82 72 68 84 50 88 C32 84 18 72 18 54 L18 24 Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
+                stroke="#D4AF37"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                fill="rgba(212, 175, 55, 0.08)"
                 initial={{ pathLength: 0 }}
-                animate={{ pathLength: stepIndex >= 2 ? 1 : 0 }}
-                transition={{ duration: 2, ease: "easeInOut" }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.4, ease: "easeInOut" }}
               />
-              {/* Central Scales icon */}
+              {/* Central Scales of Justice */}
               <motion.path
-                d="M38 45 L62 45 M50 35 L50 68 M42 68 L58 68 M42 48 L50 54 L58 48"
-                stroke="currentColor"
-                strokeWidth="1.2"
+                d="M36 44 L64 44 M50 32 L50 68 M40 68 L60 68 M36 44 L44 54 M64 44 L56 54 M30 54 L44 54 M56 54 L70 54"
+                stroke="#FFD754"
+                strokeWidth="2"
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
-                animate={{ pathLength: stepIndex >= 2 ? 1 : 0 }}
-                transition={{ duration: 1.5, delay: 0.8, ease: "easeInOut" }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.2, delay: 0.3, ease: "easeInOut" }}
               />
             </svg>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* CENTRAL LOGO & BRAND TEXT (Fades in over the split doors, then fades out as they slide open) */}
-      <AnimatePresence>
-        {step !== "doors-open" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: stepIndex >= 3 ? 1 : 0 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.6 }}
-            className="absolute inset-x-0 bottom-[18%] md:bottom-[22%] mx-auto z-[200] max-w-lg text-center px-6 flex flex-col items-center pointer-events-none"
-          >
-            {/* Blueprint Grid Coordinate */}
-            <div className="inline-flex items-center gap-1 bg-[#d4af37]/10 border border-[#d4af37]/25 text-[9px] font-mono tracking-[0.2em] text-[#d4af37] px-3 py-1 rounded-sm uppercase mb-4">
-              <Cpu className="w-3.5 h-3.5 animate-pulse" /> CLASSIFIED ARCHIVE GATEWAY
-            </div>
+        {/* REFINED BRAND TYPOGRAPHY */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="space-y-2 mb-6"
+        >
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 text-[10px] font-mono text-[#ffd754] uppercase tracking-widest">
+            <Sparkles className="w-3 h-3" /> Constitutional Defense & Legal Literacy
+          </div>
 
-            {/* Glowing Brand Title */}
-            <h1 className="text-3xl md:text-5xl font-serif text-white tracking-[0.2em] uppercase leading-none drop-shadow-[0_0_15px_rgba(212,175,55,0.25)] font-light">
-              CIVIC <span className="text-[#d4af37] font-semibold">SHIELD</span>
-            </h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif text-white font-normal tracking-wide">
+            CIVIC <span className="text-[#ffd754] font-semibold italic">SHIELD</span>
+          </h1>
 
-            {/* Sub-heading */}
-            <p className="text-[10px] md:text-xs font-mono text-gray-400 tracking-[0.25em] uppercase mt-3">
-              Securing Sovereign Legal Safeguards
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* FOOTER INTERACTIVE CONSOLE STATUS & BYPASS BUTTON */}
-      <div className="absolute bottom-6 inset-x-0 mx-auto max-w-4xl px-8 flex flex-col md:flex-row items-center justify-between gap-4 z-[300]">
-        {/* Dynamic loading console message */}
-        <div className="flex items-center gap-3.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#d4af37] animate-ping" />
-          <p className="font-mono text-[9px] md:text-[10px] text-[#d4af37] uppercase tracking-widest font-semibold">
-            {consoleMsg}
+          <p className="text-gray-300 text-xs sm:text-sm md:text-base max-w-xl mx-auto font-sans leading-relaxed">
+            Bridging the gap between citizens and legal authority. Eliminating fear through certified statutory literacy and procedural mastery.
           </p>
+        </motion.div>
+
+        {/* MEASURABLE SUCCESS TICKER CARDS */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-xl mb-8"
+        >
+          <div className="p-3 sm:p-4 rounded-sm bg-[#00173d]/80 border border-[#d4af37]/30 shadow-lg text-center">
+            <div className="text-xl sm:text-2xl font-serif font-bold text-white">
+              {visitorCount.toLocaleString()}<span className="text-[#ffd754] text-base">+</span>
+            </div>
+            <div className="text-[9px] sm:text-[10px] font-mono text-gray-300 uppercase tracking-wider mt-0.5">
+              Citizens Visited
+            </div>
+          </div>
+
+          <div className="p-3 sm:p-4 rounded-sm bg-[#00173d]/80 border border-[#d4af37]/30 shadow-lg text-center">
+            <div className="text-xl sm:text-2xl font-serif font-bold text-[#ffd754]">
+              {subscriberCount.toLocaleString()}<span className="text-white text-base">+</span>
+            </div>
+            <div className="text-[9px] sm:text-[10px] font-mono text-gray-300 uppercase tracking-wider mt-0.5">
+              Advocates Joined
+            </div>
+          </div>
+
+          <div className="p-3 sm:p-4 rounded-sm bg-[#00173d]/80 border border-[#d4af37]/30 shadow-lg text-center">
+            <div className="text-xl sm:text-2xl font-serif font-bold text-white">
+              100%
+            </div>
+            <div className="text-[9px] sm:text-[10px] font-mono text-gray-300 uppercase tracking-wider mt-0.5">
+              Free Legal Aid
+            </div>
+          </div>
+        </motion.div>
+
+        {/* PROMINENT ENTER ACTION BUTTON */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="flex flex-col sm:flex-row items-center gap-4"
+        >
+          <button
+            onClick={() => handleEnterClick()}
+            className="px-8 py-3.5 bg-gradient-to-r from-[#d4af37] via-[#ffd754] to-[#d4af37] text-[#001026] font-semibold rounded-sm font-serif text-sm tracking-wider uppercase transition-all duration-300 flex items-center gap-3 cursor-pointer shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:shadow-[0_0_35px_rgba(212,175,55,0.6)] hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span>Enter Civic Repository & Archives</span>
+            <ChevronRight className="w-4 h-4 text-black" />
+          </button>
+        </motion.div>
+
+      </div>
+
+      {/* BOTTOM SYNCHRONIZED PROGRESS TIMER & QUICK BYPASS */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+        className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-gray-400 relative z-20 pt-4 border-t border-[#d4af37]/20"
+      >
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <span className="text-[10px] text-[#ffd754] uppercase tracking-wider whitespace-nowrap">
+            Synchronizing Records:
+          </span>
+          <div className="w-full sm:w-48 bg-[#001233] h-2 rounded-full overflow-hidden border border-[#d4af37]/30 p-0.5">
+            <div 
+              className="h-full bg-[#ffd754] rounded-full transition-all duration-100 ease-linear shadow-[0_0_8px_#ffd754]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
-        {/* Premium Skip/Bypass button */}
-        {step !== "doors-open" && (
-          <button
-            onClick={handleBypass}
-            className="group px-4 py-2 bg-black/80 border border-[#d4af37]/25 hover:border-[#d4af37] text-white hover:text-[#d4af37] rounded-sm font-mono text-[9px] tracking-widest uppercase transition-all duration-300 flex items-center gap-2 cursor-pointer select-none"
-          >
-            <span>Bypass Archive Decryption</span>
-            <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-          </button>
-        )}
-      </div>
+        <button
+          onClick={() => handleEnterClick()}
+          className="text-[10px] text-gray-400 hover:text-[#ffd754] underline cursor-pointer uppercase tracking-widest"
+        >
+          Explore Immediately →
+        </button>
+      </motion.div>
 
     </div>
   );

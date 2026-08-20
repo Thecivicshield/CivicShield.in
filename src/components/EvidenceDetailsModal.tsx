@@ -401,10 +401,10 @@ export default function EvidenceDetailsModal({ item, isOpen, onClose }: Evidence
                   
                   <button
                     onClick={onClose}
-                    className="p-1.5 rounded-sm bg-[#001233] hover:bg-[#d4af37]/15 text-gray-400 hover:text-white border border-[#d4af37]/20 transition-all cursor-pointer"
-                    title="Close file details panel"
+                    className="px-2.5 py-1 rounded-sm bg-[#001233] hover:bg-[#d4af37]/20 text-[#ffd754] hover:text-white border border-[#d4af37]/35 transition-all cursor-pointer font-mono text-[9.5px] uppercase tracking-wider font-bold"
+                    title="Return to Vault"
                   >
-                    <X className="w-4 h-4" />
+                    Return to Vault
                   </button>
                 </div>
               </div>

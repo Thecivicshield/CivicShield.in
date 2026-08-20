@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "CampaignData": {
+      "title": "CampaignData",
+      "description": "Civic Shield campaign state containing blocks, blogs, evidence files, questions, subscribers, and social feeds",
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "type": "array",
+          "description": "Ordered layout blocks for the public landing view"
+        },
+        "blogs": {
+          "type": "array",
+          "description": "Blog posts and legal dispatches"
+        },
+        "evidence": {
+          "type": "array",
+          "description": "Evidence and legal locker documents"
+        },
+        "questions": {
+          "type": "array",
+          "description": "Public and anonymous citizen questions"
+        },
+        "subscribers": {
+          "type": "array",
+          "description": "Supporter newsletter email subscriptions"
+        },
+        "socialFeed": {
+          "type": "array",
+          "description": "Social feed broadcasts"
+        },
+        "newsletters": {
+          "type": "array",
+          "description": "Sent broadcast history"
+        },
+        "notificationLogs": {
+          "type": "array",
+          "description": "Email notification dispatches"
+        },
+        "lastUpdated": {
+          "type": "number",
+          "description": "Timestamp of the last modification"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/campaign/{docId}": {
+      "schema": "CampaignData",
+      "description": "Civic Shield core configuration and campaign data document"
+    }
+  }
+}

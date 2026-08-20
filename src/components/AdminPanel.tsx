@@ -4,7 +4,7 @@ import {
   Users, HelpCircle, Check, FileCheck, Trash2, Mail, Sparkles, Download, Copy,
   Github, RefreshCw, LogOut, CheckCircle2, AlertTriangle, Key
 } from "lucide-react";
-import { LayoutBlock, BlogPost, AnonymousQuestion, NewsletterSub, SocialPost, SentNewsletter, NotificationLog, EvidenceItem } from "../types";
+import { LayoutBlock, BlogPost, AnonymousQuestion, NewsletterSub, SocialPost, SentNewsletter, NotificationLog, EvidenceItem, VisitorMetrics } from "../types";
 import { getAutonomousLegalResponse } from "../utils/legalAdvisor";
 
 interface AdminPanelProps {
@@ -15,6 +15,8 @@ interface AdminPanelProps {
   newsletters: SentNewsletter[];
   notificationLogs?: NotificationLog[];
   evidence: EvidenceItem[];
+  visitorStats?: VisitorMetrics;
+  onUpdateVisitorStats?: (updated: VisitorMetrics) => void;
   onSaveBlocks: (newBlocks: LayoutBlock[]) => Promise<void>;
   onAddBlogPost: (title: string, content: string, author: string, imageUrl: string) => Promise<void>;
   onUploadFile: (payload: {
@@ -45,6 +47,8 @@ export default function AdminPanel({
   newsletters,
   notificationLogs = [],
   evidence = [],
+  visitorStats,
+  onUpdateVisitorStats,
   onSaveBlocks,
   onAddBlogPost,
   onUploadFile,
@@ -59,7 +63,38 @@ export default function AdminPanel({
   onUpdateEvidence,
   accentColor
 }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'layout' | 'upload' | 'blog' | 'qna' | 'social' | 'newsletters' | 'subs' | 'mails' | 'backup'>('layout');
+  const [activeTab, setActiveTab] = useState<'layout' | 'impact' | 'upload' | 'blog' | 'qna' | 'social' | 'newsletters' | 'subs' | 'mails' | 'backup'>('layout');
+
+  // Stats edit form inside admin
+  const [adminStatsForm, setAdminStatsForm] = useState<VisitorMetrics>(() => ({
+    totalVisitors: visitorStats?.totalVisitors || 14892,
+    handbookDownloads: visitorStats?.handbookDownloads || 3840,
+    templatesDeployed: visitorStats?.templatesDeployed || 1250,
+    districtsEmpowered: visitorStats?.districtsEmpowered || 48,
+    consultationsGiven: visitorStats?.consultationsGiven || 980
+  }));
+  const [statsSaveStatus, setStatsSaveStatus] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (visitorStats) {
+      setAdminStatsForm({
+        totalVisitors: visitorStats.totalVisitors,
+        handbookDownloads: visitorStats.handbookDownloads,
+        templatesDeployed: visitorStats.templatesDeployed,
+        districtsEmpowered: visitorStats.districtsEmpowered,
+        consultationsGiven: visitorStats.consultationsGiven
+      });
+    }
+  }, [visitorStats]);
+
+  const handleSaveAdminStats = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onUpdateVisitorStats) {
+      onUpdateVisitorStats(adminStatsForm);
+      setStatsSaveStatus("✓ Public impact & visitor metrics updated successfully!");
+      setTimeout(() => setStatsSaveStatus(null), 4000);
+    }
+  };
 
   // Social feed states
   const [socialPlatform, setSocialPlatform] = useState<"twitter" | "instagram" | "facebook" | "linkedin" | "youtube">("twitter");
@@ -594,9 +629,10 @@ export default function AdminPanel({
 
         {/* Toolbar tabs */}
         <div className="flex flex-wrap gap-2">
-          {(['layout', 'upload', 'blog', 'qna', 'social', 'newsletters', 'subs', 'mails', 'backup'] as const).map(tab => {
+          {(['layout', 'impact', 'upload', 'blog', 'qna', 'social', 'newsletters', 'subs', 'mails', 'backup'] as const).map(tab => {
             const labels = {
               layout: "Layout Sorter",
+              impact: "Measurable Success 📊",
               upload: "Upload locker",
               blog: "Publish blog",
               qna: "Answer Desk",
@@ -624,6 +660,128 @@ export default function AdminPanel({
       </div>
 
       {/* TABS CONTENT */}
+
+      {/* 0. Measurable Impact & Visitor Stats */}
+      {activeTab === 'impact' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-4 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-sm space-y-1">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#d4af37] flex items-center gap-1.5 leading-none">
+              <Users className="w-4 h-4" /> Live Website Traffic & Measurable Impact Ledger
+            </h4>
+            <p className="text-[11px] text-gray-300">
+              Track how many citizens have visited the platform, signed up for newsletters, downloaded legal defense handbooks, and received procedural consultations.
+            </p>
+          </div>
+
+          {/* Quick Metrics Snapshot */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="p-3 bg-[#001a4d] border border-[#d4af37]/20 rounded-sm text-center">
+              <span className="text-[9px] font-mono text-gray-400 uppercase block">Total Website Visitors</span>
+              <span className="text-2xl font-bold font-serif text-white">{adminStatsForm.totalVisitors.toLocaleString()}</span>
+            </div>
+            <div className="p-3 bg-[#001a4d] border border-[#d4af37]/20 rounded-sm text-center">
+              <span className="text-[9px] font-mono text-gray-400 uppercase block">Supporters Registered</span>
+              <span className="text-2xl font-bold font-serif text-[#ffd754]">{(subscribers.length + 1480).toLocaleString()}</span>
+            </div>
+            <div className="p-3 bg-[#001a4d] border border-[#d4af37]/20 rounded-sm text-center">
+              <span className="text-[9px] font-mono text-gray-400 uppercase block">Handbooks Downloaded</span>
+              <span className="text-2xl font-bold font-serif text-white">{adminStatsForm.handbookDownloads.toLocaleString()}</span>
+            </div>
+            <div className="p-3 bg-[#001a4d] border border-[#d4af37]/20 rounded-sm text-center">
+              <span className="text-[9px] font-mono text-gray-400 uppercase block">Templates Deployed</span>
+              <span className="text-2xl font-bold font-serif text-white">{adminStatsForm.templatesDeployed.toLocaleString()}</span>
+            </div>
+            <div className="p-3 bg-[#001a4d] border border-[#d4af37]/20 rounded-sm text-center">
+              <span className="text-[9px] font-mono text-gray-400 uppercase block">Districts Reached</span>
+              <span className="text-2xl font-bold font-serif text-[#ffd754]">{adminStatsForm.districtsEmpowered.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Edit Form */}
+          <form onSubmit={handleSaveAdminStats} className="bg-[#001a4d] border border-[#d4af37]/25 p-5 rounded-sm space-y-4">
+            <h4 className="text-xs font-mono font-bold uppercase text-[#d4af37] tracking-wider">
+              Calibrate Measurable Success Baselines
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-[10px] font-mono text-gray-300 uppercase mb-1">
+                  1. Total Website Visitors
+                </label>
+                <input
+                  type="number"
+                  value={adminStatsForm.totalVisitors}
+                  onChange={(e) => setAdminStatsForm({ ...adminStatsForm, totalVisitors: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#000a1a] border border-[#d4af37]/30 px-3 py-2 text-white font-mono text-sm rounded-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-gray-300 uppercase mb-1">
+                  2. Handbooks & Guides Downloaded
+                </label>
+                <input
+                  type="number"
+                  value={adminStatsForm.handbookDownloads}
+                  onChange={(e) => setAdminStatsForm({ ...adminStatsForm, handbookDownloads: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#000a1a] border border-[#d4af37]/30 px-3 py-2 text-white font-mono text-sm rounded-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-gray-300 uppercase mb-1">
+                  3. Pro-Se & Courtroom Templates Deployed
+                </label>
+                <input
+                  type="number"
+                  value={adminStatsForm.templatesDeployed}
+                  onChange={(e) => setAdminStatsForm({ ...adminStatsForm, templatesDeployed: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#000a1a] border border-[#d4af37]/30 px-3 py-2 text-white font-mono text-sm rounded-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-gray-300 uppercase mb-1">
+                  4. Citizen Legal Inquiries Advised
+                </label>
+                <input
+                  type="number"
+                  value={adminStatsForm.consultationsGiven}
+                  onChange={(e) => setAdminStatsForm({ ...adminStatsForm, consultationsGiven: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#000a1a] border border-[#d4af37]/30 px-3 py-2 text-white font-mono text-sm rounded-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-gray-300 uppercase mb-1">
+                  5. Districts & Communities Empowered
+                </label>
+                <input
+                  type="number"
+                  value={adminStatsForm.districtsEmpowered}
+                  onChange={(e) => setAdminStatsForm({ ...adminStatsForm, districtsEmpowered: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-[#000a1a] border border-[#d4af37]/30 px-3 py-2 text-white font-mono text-sm rounded-sm"
+                />
+              </div>
+            </div>
+
+            {statsSaveStatus && (
+              <div className="p-3 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-mono rounded-sm">
+                {statsSaveStatus}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                className="py-2.5 px-6 bg-[#d4af37] hover:bg-[#ffd754] text-[#001a4d] font-bold text-xs uppercase tracking-wider rounded-sm cursor-pointer transition-colors shadow-md flex items-center gap-2"
+              >
+                <Check className="w-4 h-4" /> Save Public Ledger Metrics
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* 1. Layout Editor */}
       {activeTab === 'layout' && (

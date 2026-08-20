@@ -59,10 +59,10 @@ export default function EvidenceFolderView({ item, onClose }: EvidenceFolderView
 
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-amber-950/10 text-amber-950/70 hover:text-amber-950 transition-colors cursor-pointer"
+            className="px-2.5 py-1 rounded bg-[#705634]/15 hover:bg-[#705634]/30 text-[#705634] font-mono text-[10px] uppercase font-bold tracking-wider transition-all cursor-pointer"
             title="Seal case folder"
           >
-            <X className="w-5 h-5" />
+            Seal Dossier
           </button>
         </div>
 

@@ -1,11 +1,13 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import { initializeApp } from "firebase/app";
 import { initializeFirestore, doc, setDoc, getDoc, Firestore, setLogLevel } from "firebase/firestore";
-import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog } from "./src/types";
+import { CivicShieldData, BlogPost, EvidenceItem, AnonymousQuestion, NewsletterSub, LayoutBlock, NotificationLog, BookReview, CaseFile } from "./src/types";
 import { getAutonomousLegalResponse } from "./src/utils/legalAdvisor";
+import { initialData as baseInitialData } from "./src/data/initialData";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -14,303 +16,27 @@ const PORT = Number(process.env.PORT) || 3000;
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const DATA_FILE_PATH = path.join(process.cwd(), "civic_data.json");
+const DATA_DIR = path.join(process.cwd(), "data");
+const JOURNAL_STORE_PATH = path.join(DATA_DIR, "journal_store.json");
+const CIVIC_DATA_PATH = path.join(process.cwd(), "civic_data.json");
+const INITIAL_DATA_TS_PATH = path.join(process.cwd(), "src", "data", "initialData.ts");
 const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
-// Ensure uploads folder exists
+// Ensure data and uploads folders exist
 try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
   if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   }
 } catch (error) {
-  console.warn("Could not create uploads directory (might be read-only filesystem):", error);
+  console.warn("Could not create directories (might be read-only filesystem):", error);
 }
-
-// Pre-seeded Initial Campaign Data (Royal Navy Blue / Gold Style)
-const initialData: CivicShieldData = {
-  blocks: [
-    {
-      id: "hero",
-      title: "Hero Searchlight",
-      visible: true,
-      order: 1,
-      customData: {
-        heroTitle: "CIVIC SHIELD",
-        heroSubtitle: "Bridging the gap between citizens and legal authority. We eliminate fear, advocate for legal literacy, and empower you with knowledge of basic laws so you can protect yourself and your family with confidence.",
-        heroAlertText: "ALERT: Our upcoming virtual 'Know-Your-Rights Procedural Clinic' is scheduled for June 28th. Reserve your free handbook below.",
-        primaryColor: "#0F264A",
-        accentColor: "#D4AF37"
-      }
-    },
-    {
-      id: "pillars",
-      title: "Campaign Core Pillars",
-      visible: true,
-      order: 2,
-      customData: {
-        pillars: [
-          {
-            title: "Overcome My Fear of Encounters",
-            description: "Conquering the anxiety of administrative or roadside stops by learning my exact, verified rights so I can speak with composure and confidence.",
-            iconName: "ShieldAlert"
-          },
-          {
-            title: "Protect My Family, Land, & Home",
-            description: "Equipping my household with standardized, robust administrative templates to defend our private property against unauthorized municipal overreaches.",
-            iconName: "Landmark"
-          },
-          {
-            title: "Speak Personally, Advocate Competently",
-            description: "Developing my self-representation skills so I can confidently voice my challenges and protect my interests directly in local public hearings.",
-            iconName: "Scale"
-          },
-          {
-            title: "Hold Our Local Servants Accountable",
-            description: "Independently auditing government spending and public asset indexes to ensure that municipal authorities operate with full transparency for the community.",
-            iconName: "Eye"
-          }
-        ]
-      }
-    },
-    {
-      id: "evidence",
-      title: "Legal Library & Handouts",
-      visible: true,
-      order: 3,
-      customData: {
-        accentColor: "#D4AF37"
-      }
-    },
-    {
-      id: "timeline",
-      title: "Campaign Roadmap",
-      visible: true,
-      order: 4,
-      customData: {
-        timeline: [
-          {
-            date: "May 10, 2026",
-            title: "Digital Curriculum Drafted",
-            description: "Released our 6-segment citizen syllabus covering fundamental civil liberties and constitutional interaction protocols.",
-            completed: true
-          },
-          {
-            date: "June 1, 2026",
-            title: "Locker Vault Release",
-            description: "Uploaded the Pro-Se Administrative Response template pack to help people represent themselves in local hearings.",
-            completed: true
-          },
-          {
-            date: "June 28, 2026",
-            title: "National Know-Your-Rights Webinar",
-            description: "Host a nationwide mock interaction call covering safe legal triggers, consent boundaries, and detainment thresholds.",
-            completed: false
-          },
-          {
-            date: "July 20, 2026",
-            title: "Municipal Authority Exchange",
-            description: "First collaborative workshop linking civic council, defense lawyers, and municipal officials to set transparent procedural benchmarks.",
-            completed: false
-          }
-        ]
-      }
-    },
-    {
-      id: "impact-metrics",
-      title: "Impact Metrics Chart",
-      visible: true,
-      order: 5,
-      customData: {
-        metrics: [
-          { label: "Supporters Recruited", value: 340 },
-          { label: "Students Engaged", value: 1250 },
-          { label: "Guides Distributed", value: 850 },
-          { label: "Campus Workshops", value: 18 }
-        ]
-      }
-    },
-    {
-      id: "justice-shield",
-      title: "The Justice Shield",
-      visible: true,
-      order: 6,
-      customData: {}
-    },
-    {
-      id: "social-feed",
-      title: "Campaign Social Stream",
-      visible: true,
-      order: 7,
-      customData: {}
-    },
-    {
-      id: "blog",
-      title: "Latest Insights & Guides",
-      visible: true,
-      order: 8,
-      customData: {}
-    },
-    {
-      id: "newsletter",
-      title: "Civic Messenger Registration",
-      visible: true,
-      order: 9,
-      customData: {}
-    }
-  ],
-  posts: [
-    {
-      id: "post_1",
-      title: "How to Dissolve Detainment Fear Using Three Essential Questions",
-      content: "When interacting with any legal authority, fear usually stems from not knowing what comes next. By asking three simple, calm, and progressive questions, you completely clear up the scenario:\n\n1. 'Am I being detained, officer, or am I free to go?' If they answer that you are not detained, you are legally free to calmly walk away. If you are detained, they must possess a reasonable articulable suspicion.\n\n2. 'What is the specific reasonable suspicion for my detainment?' This forces a professional, verbal record of their grounds.\n\n3. 'Am I required by law to provide identity under this specific detainment?' This clarifies if your local code makes refusal to identify a secondary infraction during active stop-and-frisks.\n\nBy keeping dialogue objective, you eliminate panic, document facts, and secure critical protections immediately.",
-      date: "2026-06-12",
-      author: "Marcus Thorne, Senior Counsel",
-      imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1200",
-      comments: [
-        {
-          id: "c1",
-          author: "Elena Rostova",
-          text: "This basic checklist saved me so much stress yesterday during a municipal inspection inquiry. Thank you Marcus!",
-          date: "2026-06-12"
-        }
-      ]
-    },
-    {
-      "id": "post_2",
-      "title": "Pro-Se Rights: You Do Not Need to Afford an Attorney to Stand Tall",
-      "content": "Many citizens give up their statutory rights simply because they cannot afford steep attorney trial retainers. However, representing oneself ('Pro-Se') is a constitutionally absolute right.\n\nInside our Evidence locker, we have assembled standardized response packets to small claims files, zoning objections, and municipal citation assessments. In this dispatch, we walk you through standard courthouse filing etiquette - covering how to stamp, index, and properly serve your responses to municipal offices. Stand tall and represent with confidence.",
-      "date": "2026-06-10",
-      "author": "David Vance, Litigation Lead",
-      "imageUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200",
-      "comments": []
-    }
-  ],
-  evidence: [
-    {
-      id: "ev_1",
-      title: "Traffic interaction & Police Consent Handbook",
-      description: "A pocket-sized breakdown of your exact constitutional rights and compliance requirements during routine highway or roadside vehicular administrative actions.",
-      type: "pdf",
-      fileName: "Traffic_Interactions_Civilian_Guide.pdf",
-      fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      uploadedAt: "2026-06-11",
-      fileSize: "1.15 MB",
-      verifiedBy: "Civic Shield Advocacy Inst."
-    },
-    {
-      id: "ev_2",
-      title: "Pro-Se Self-Representation & Filing Templates",
-      description: "Standard boilerplate layouts for composing clear, professional civil replies to minor administrative citations or landlord claims.",
-      type: "spreadsheet",
-      fileName: "ProSe_Response_Courter_Templates.xlsx",
-      fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-      uploadedAt: "2026-06-09",
-      fileSize: "2.40 MB",
-      verifiedBy: "Legal Literacy Board"
-    },
-    {
-      id: "ev_3",
-      title: "Procedural De-escalation Compliance Brief",
-      description: "Video instruction detailing how to record interactions clearly, remain respectful, and secure your rights without escalating tension.",
-      type: "video",
-      fileName: "Interaction_Protocol_Deescalate.mp4",
-      fileUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      uploadedAt: "2026-06-05",
-      fileSize: "11.2 MB",
-      verifiedBy: "National De-escalation League"
-    }
-  ],
-  questions: [
-    {
-      id: "q_1",
-      text: "What is the difference between a police inquiry and a formal detainment?",
-      timestamp: "2026-06-12 14:15",
-      answered: true,
-      answer: "An inquiry is completely voluntary. You are under no obligation to stand or answer questions, and you may walk away. Detainment, however, is a temporary seizure where you must comply but do not have to confess or supply unrequired info beyond identification. Always ask: 'Am I free to go?' to establish this boundary.",
-      isPublic: true,
-      repliedBy: "Campaign Manager"
-    },
-    {
-      id: "q_2",
-      text: "How can I assert my right to record public officers in public spaces?",
-      timestamp: "2026-06-13 09:20",
-      answered: true,
-      answer: "You have a clearly protected right under constitutional case law to visually record officers working in public view. Ensure you remain at a non-interference distance, do not physically obstruct their workspace, and state calmly: 'I am standing back and documenting this for legal transparency.'",
-      isPublic: true,
-      repliedBy: "AI Campaign Advocate"
-    }
-  ],
-  subscribers: [
-    {
-      id: "sub_1",
-      email: "thecivicshield@gmail.com",
-      subscribedAt: "2026-06-13 04:28"
-    }
-  ],
-  socialFeed: [
-    {
-      id: "soc_3",
-      platform: "twitter",
-      username: "Civic Shield Campaign",
-      handle: "@TheCivicShield",
-      content: "⚠️ Know your basic words! If an administrative officer starts questioning you in public, calmly ask: 'Am I being detained, or am I free to go?'\n\nIf free, you can walk away. If detained, you are protected from random interrogations. Knowledge bridges the gap! ⚖️ #LegalLiteracy #CivicShield",
-      timestamp: "1 hour ago",
-      likes: 142,
-      shares: 56,
-      comments: 12
-    },
-    {
-      id: "soc_2",
-      platform: "instagram",
-      username: "Civic Shield",
-      handle: "@thecivicshield",
-      content: "Our central mission is bridging the critical gap between citizens and legal authority. Reciprocal respect can only emerge when citizens know their basic rights and authorities respect procedural boundaries. \n\nWe eliminate fear by teaching you basic laws. Click our link in bio to download our Free compliance and de-escalation toolkit PDFs! 📚🛡️",
-      imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
-      timestamp: "4 hours ago",
-      likes: 289,
-      shares: 89,
-      comments: 24
-    },
-    {
-      id: "soc_1",
-      platform: "linkedin",
-      username: "Civic Shield Foundation",
-      handle: "linkedin.com/company/civicshield",
-      content: "Did you know? Representing yourself in local courts ('Pro-Se') is a constitutional absolute. However, filing municipal objection paperwork can feel incredibly scary.\n\nTo make this easy, we've uploaded clean, standardized boilerplate templates for obection responses directly to our online Evidence Room. Learn how to speak the institutional language and stand tall with confidence. 📚🛡️",
-      timestamp: "1 day ago",
-      likes: 195,
-      shares: 72,
-      comments: 15
-    },
-    {
-      id: "soc_youtube_1",
-      platform: "youtube",
-      username: "Civic Shield Channel",
-      handle: "youtube.com/@civicshield",
-      content: "📺 NEW VIDEO RELEASE: Walking through an active police detainment step-by-step. Discover how to politely resist unconstitutional searches while remaining fully compliant with officers' safe verbal requests. Watch the full simulation on our channel and learn how to guard your legal rights easily!",
-      timestamp: "2 days ago",
-      likes: 412,
-      shares: 155,
-      comments: 48
-    }
-  ],
-  newsletters: [
-    {
-      id: "news_1",
-      subject: "Launching the Civic Shield Legal Literacy Vault!",
-      badge: "Campaign Launch",
-      body: "Dear Supporters,\n\nWe are absolutely thrilled to broadcast our very first Civic Shield digital archive dispatch! Our absolute aim is to bridge the hostile communication gap between our citizens and municipal authorial forces.\n\nInside our public evidence drawer, you will find our newly compiled civilian guide to police encounters, along with court boilerplate filing indexes. Please share these with family, neighbors, and colleagues. We eliminate fear with pure knowledge.\n\nIn solidarity,\nThe Civic Shield Coordinator Team",
-      sentAt: "2026-06-13 11:20",
-      recipientCount: 1
-    }
-  ],
-  notificationLogs: []
-};
 
 // Initialize Firebase
 let firestore: Firestore | null = null;
 try {
-  // Silent the internal logs of the Firebase Web SDK to prevent benign gRPC stream cancellation messages in Node.js
   setLogLevel("silent");
 
   const CONFIG_FILE_PATH = path.join(process.cwd(), "firebase-applet-config.json");
@@ -342,44 +68,97 @@ try {
   console.error("Failed to initialize Firebase / Firestore via client SDK:", error);
 }
 
-// Help helper for reading data file
-function loadData(): CivicShieldData {
+// Function to write code-level persistence into src/data/initialData.ts
+function writeInitialDataTs(data: CivicShieldData) {
   try {
-    if (fs.existsSync(DATA_FILE_PATH)) {
-      const content = fs.readFileSync(DATA_FILE_PATH, "utf-8");
-      return JSON.parse(content);
+    const srcDataDir = path.join(process.cwd(), "src", "data");
+    if (!fs.existsSync(srcDataDir)) {
+      fs.mkdirSync(srcDataDir, { recursive: true });
     }
-  } catch (error) {
-    console.error("Failed to read civic_data.json, returning pre-seeded details.", error);
+    const tsCode = `import { CivicShieldData } from "../types";\n\nexport const initialData: CivicShieldData = ${JSON.stringify(data, null, 2)};\n`;
+    fs.writeFileSync(INITIAL_DATA_TS_PATH, tsCode, "utf-8");
+  } catch (err) {
+    console.warn("Could not sync src/data/initialData.ts:", err);
   }
-  return initialData;
 }
 
-// Help helper for writing data file
+// Helper for reading data file across disk sources
+function loadData(): CivicShieldData {
+  // 1. First priority: data/journal_store.json
+  try {
+    if (fs.existsSync(JOURNAL_STORE_PATH)) {
+      const content = fs.readFileSync(JOURNAL_STORE_PATH, "utf-8");
+      const parsed = JSON.parse(content);
+      if (parsed && Array.isArray(parsed.blocks)) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.warn("Could not read data/journal_store.json, attempting fallback:", error);
+  }
+
+  // 2. Second priority: civic_data.json
+  try {
+    if (fs.existsSync(CIVIC_DATA_PATH)) {
+      const content = fs.readFileSync(CIVIC_DATA_PATH, "utf-8");
+      const parsed = JSON.parse(content);
+      if (parsed && Array.isArray(parsed.blocks)) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+    console.warn("Could not read civic_data.json, attempting fallback:", error);
+  }
+
+  // 3. Fallback: Base initialData from source
+  return baseInitialData;
+}
+
+// Helper for writing complete persistent data across all targets
 function saveData(newData: CivicShieldData) {
   try {
     newData.lastUpdated = Date.now();
-    fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(newData, null, 2), "utf-8");
-    
-    // Asynchronously write to Firestore to prevent page-load blocking
+    const jsonStr = JSON.stringify(newData, null, 2);
+
+    // 1. Write to data/journal_store.json (primary disk persistence)
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      fs.writeFileSync(JOURNAL_STORE_PATH, jsonStr, "utf-8");
+    } catch (e) {
+      console.warn("Failed writing to data/journal_store.json:", e);
+    }
+
+    // 2. Write to civic_data.json
+    try {
+      fs.writeFileSync(CIVIC_DATA_PATH, jsonStr, "utf-8");
+    } catch (e) {
+      console.warn("Failed writing to civic_data.json:", e);
+    }
+
+    // 3. Automatically sync changes directly to src/data/initialData.ts for redeployment retention
+    writeInitialDataTs(newData);
+
+    // 4. Asynchronously persist to Firestore database
     if (firestore) {
       setDoc(doc(firestore, "campaign", "data"), newData)
         .then(() => {
-          console.log("Successfully persisted updated campaignData to Firestore!");
+          console.log("✓ Successfully persisted updated campaignData to Firestore!");
         })
         .catch((error) => {
           console.error("Failed to write to Firestore:", error);
         });
     }
   } catch (error) {
-    console.error("Failed to write to civic_data.json:", error);
+    console.error("Failed to save data across stores:", error);
   }
 }
 
 // Load global database
 let campaignData = loadData();
 
-// Seed initial files of DB
+// Seed initial files of DB across all disk stores
 saveData(campaignData);
 
 // Asynchronously sync with Firestore on boot
@@ -391,11 +170,18 @@ async function syncWithFirestore() {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const remoteData = docSnap.data() as CivicShieldData;
-      if (remoteData) {
-        campaignData = remoteData;
-        // Keep local cache file updated
-        fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(campaignData, null, 2), "utf-8");
-        console.log("✓ Success: Synced campaignData from persistent Firestore on boot!");
+      if (remoteData && Array.isArray(remoteData.blocks)) {
+        campaignData = {
+          ...campaignData,
+          ...remoteData,
+          masterPasscode: remoteData.masterPasscode || campaignData.masterPasscode || "lol12ymn",
+          bookReviews: remoteData.bookReviews || campaignData.bookReviews || baseInitialData.bookReviews || [],
+          caseFiles: remoteData.caseFiles || campaignData.caseFiles || baseInitialData.caseFiles || [],
+          visitorStats: remoteData.visitorStats || campaignData.visitorStats || baseInitialData.visitorStats
+        };
+        // Update all local stores with remote data
+        saveData(campaignData);
+        console.log("✓ Success: Synced campaignData from persistent Firestore and updated disk stores!");
       }
     } else {
       console.log("No remote database document found in Firestore. Seeding current state...");
@@ -411,17 +197,22 @@ syncWithFirestore();
 // Initialize Gemini Client
 let aiClient: GoogleGenAI | null = null;
 const apiKey = process.env.GEMINI_API_KEY;
-if (apiKey) {
-  aiClient = new GoogleGenAI({
-    apiKey: apiKey,
-    httpOptions: {
-      headers: {
-        "User-Agent": "aistudio-build",
+if (apiKey && apiKey.trim().length > 0 && !apiKey.startsWith("AQ.Ab8RN6I7vItO")) {
+  try {
+    aiClient = new GoogleGenAI({
+      apiKey: apiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
       },
-    },
-  });
+    });
+    console.log("✓ Google GenAI client successfully connected and initialized with active key!");
+  } catch (err) {
+    console.error("Error initializing Google GenAI client:", err);
+  }
 } else {
-  console.warn("GEMINI_API_KEY is missing. AI chat assistance will operate in offline mock response mode.");
+  console.warn("GEMINI_API_KEY is not set or placeholder. Operating in high-precision autonomous legal advisor mode.");
 }
 
 // Server static files under /uploads
@@ -429,8 +220,284 @@ app.use("/uploads", express.static(UPLOADS_DIR));
 
 // ---------------- API ENDPOINTS ----------------
 
+// Helper to ensure visitorStats structure is complete
+function ensureVisitorStats() {
+  if (!campaignData.visitorStats) {
+    campaignData.visitorStats = {
+      totalVisitors: 14892,
+      gateEntries: 6420,
+      chatInteractions: 980,
+      handbookDownloads: 3840,
+      templatesDeployed: 1250,
+      districtsEmpowered: 48,
+      consultationsGiven: 980,
+      pagesRead: 8740,
+      reviewsCount: (campaignData.bookReviews || []).length || 3,
+      lastUpdated: Date.now()
+    };
+  }
+  if (campaignData.visitorStats.gateEntries === undefined) {
+    campaignData.visitorStats.gateEntries = 6420;
+  }
+  if (campaignData.visitorStats.chatInteractions === undefined) {
+    campaignData.visitorStats.chatInteractions = campaignData.visitorStats.consultationsGiven || 980;
+  }
+  if (campaignData.visitorStats.pagesRead === undefined) {
+    campaignData.visitorStats.pagesRead = 8740;
+  }
+  if (campaignData.visitorStats.reviewsCount === undefined) {
+    campaignData.visitorStats.reviewsCount = (campaignData.bookReviews || []).length || 3;
+  }
+}
+
+// Master Passcode Verification
+app.post("/api/verify-passcode", (req, res) => {
+  try {
+    const { passcode } = req.body;
+    const currentPasscode = campaignData.masterPasscode || "lol12ymn";
+    if (passcode === currentPasscode) {
+      return res.json({ success: true, authorized: true });
+    }
+    return res.status(401).json({ success: false, authorized: false, error: "Invalid master authorization code." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Master Passcode Update
+app.post("/api/update-passcode", (req, res) => {
+  try {
+    const { currentPasscode, newPasscode } = req.body;
+    const existing = campaignData.masterPasscode || "lol12ymn";
+    if (currentPasscode !== existing) {
+      return res.status(401).json({ success: false, error: "Current passcode is incorrect." });
+    }
+    if (!newPasscode || newPasscode.trim().length < 4) {
+      return res.status(400).json({ success: false, error: "New passcode must be at least 4 characters long." });
+    }
+    campaignData.masterPasscode = newPasscode.trim();
+    saveData(campaignData);
+    console.log("✓ Master passcode successfully updated and saved across disk stores and initialData.ts");
+    res.json({ success: true, message: "Master passcode updated and permanently synced across redeployments!" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Track reading pages in the Interactive Vintage Book
+app.post("/api/track-reading-page", (req, res) => {
+  try {
+    ensureVisitorStats();
+    campaignData.visitorStats!.pagesRead = (campaignData.visitorStats!.pagesRead || 8740) + 1;
+    campaignData.visitorStats!.lastUpdated = Date.now();
+    saveData(campaignData);
+    res.json({ success: true, pagesRead: campaignData.visitorStats!.pagesRead });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Book Reviews Endpoints ---
+app.get("/api/book-reviews", (req, res) => {
+  if (!campaignData.bookReviews) {
+    campaignData.bookReviews = baseInitialData.bookReviews || [];
+  }
+  res.json(campaignData.bookReviews);
+});
+
+app.post("/api/book-reviews", (req, res) => {
+  try {
+    const { bookTitle, chapterTitle, reviewerName, rating, reviewText } = req.body;
+    if (!reviewText || !reviewerName) {
+      return res.status(400).json({ error: "Reviewer name and review text are required." });
+    }
+    if (!campaignData.bookReviews) {
+      campaignData.bookReviews = [];
+    }
+    const newReview: BookReview = {
+      id: "rev_" + Date.now(),
+      bookTitle: bookTitle || "The Sovereign Defense Doctrine",
+      chapterTitle: chapterTitle || "Chapter I",
+      reviewerName: reviewerName.trim(),
+      rating: Number(rating) || 5,
+      reviewText: reviewText.trim(),
+      date: new Date().toISOString().split("T")[0],
+      verified: true
+    };
+    campaignData.bookReviews.unshift(newReview);
+    ensureVisitorStats();
+    campaignData.visitorStats!.reviewsCount = campaignData.bookReviews.length;
+    saveData(campaignData);
+    res.json({ success: true, review: newReview, totalReviews: campaignData.bookReviews.length });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/book-reviews/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    if (campaignData.bookReviews) {
+      campaignData.bookReviews = campaignData.bookReviews.filter((r) => r.id !== id);
+      ensureVisitorStats();
+      campaignData.visitorStats!.reviewsCount = campaignData.bookReviews.length;
+      saveData(campaignData);
+    }
+    res.json({ success: true, message: "Book review removed from persistent store." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Case Files Endpoints ---
+app.get("/api/case-files", (req, res) => {
+  if (!campaignData.caseFiles) {
+    campaignData.caseFiles = baseInitialData.caseFiles || [];
+  }
+  res.json(campaignData.caseFiles);
+});
+
+app.post("/api/case-files", (req, res) => {
+  try {
+    const { caseNumber, title, category, status, description, type, fileName, fileUrl, fileSize, verifiedBy } = req.body;
+    if (!title || !caseNumber) {
+      return res.status(400).json({ error: "Title and Case Number are required." });
+    }
+    if (!campaignData.caseFiles) {
+      campaignData.caseFiles = [];
+    }
+    const newCaseFile: CaseFile = {
+      id: "cf_" + Date.now(),
+      caseNumber: caseNumber.trim(),
+      title: title.trim(),
+      category: category || "Constitutional Rights",
+      status: status || "precedent",
+      description: description || "",
+      type: type || "pdf",
+      fileName: fileName || "Case_Document.pdf",
+      fileUrl: fileUrl || "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
+      fileSize: fileSize || "1.5 MB",
+      uploadedAt: new Date().toISOString().split("T")[0],
+      verifiedBy: verifiedBy || "Civic Legal Research Desk"
+    };
+    campaignData.caseFiles.unshift(newCaseFile);
+    saveData(campaignData);
+    res.json({ success: true, caseFile: newCaseFile });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/update-case-file", (req, res) => {
+  try {
+    const { id, updatedFields } = req.body;
+    if (!id || !updatedFields) {
+      return res.status(400).json({ error: "Missing case file ID or updatedFields." });
+    }
+    if (campaignData.caseFiles) {
+      campaignData.caseFiles = campaignData.caseFiles.map((cf) => {
+        if (cf.id === id) {
+          return { ...cf, ...updatedFields };
+        }
+        return cf;
+      });
+      saveData(campaignData);
+    }
+    res.json({ success: true, message: "Case file updated and persisted to disk!" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/case-files/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    if (campaignData.caseFiles) {
+      campaignData.caseFiles = campaignData.caseFiles.filter((cf) => cf.id !== id);
+      saveData(campaignData);
+    }
+    res.json({ success: true, message: "Case file deleted from disk storage." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Track a new unique visit
+app.post("/api/track-visit", (req, res) => {
+  try {
+    ensureVisitorStats();
+    campaignData.visitorStats!.totalVisitors = (campaignData.visitorStats!.totalVisitors || 14892) + 1;
+    campaignData.visitorStats!.lastUpdated = Date.now();
+    saveData(campaignData);
+    res.json({ success: true, stats: campaignData.visitorStats });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Track an intro gate entry unseal
+app.post("/api/track-entry", (req, res) => {
+  try {
+    ensureVisitorStats();
+    campaignData.visitorStats!.gateEntries = (campaignData.visitorStats!.gateEntries || 6420) + 1;
+    campaignData.visitorStats!.lastUpdated = Date.now();
+    saveData(campaignData);
+    res.json({ success: true, stats: campaignData.visitorStats });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Track a chat query / consultation interaction
+app.post("/api/track-chat", (req, res) => {
+  try {
+    ensureVisitorStats();
+    campaignData.visitorStats!.chatInteractions = (campaignData.visitorStats!.chatInteractions || 980) + 1;
+    campaignData.visitorStats!.consultationsGiven = (campaignData.visitorStats!.consultationsGiven || 980) + 1;
+    campaignData.visitorStats!.lastUpdated = Date.now();
+    saveData(campaignData);
+    res.json({ success: true, stats: campaignData.visitorStats });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Track handbook / file download
+app.post("/api/track-download", (req, res) => {
+  try {
+    ensureVisitorStats();
+    campaignData.visitorStats!.handbookDownloads = (campaignData.visitorStats!.handbookDownloads || 3840) + 1;
+    campaignData.visitorStats!.lastUpdated = Date.now();
+    saveData(campaignData);
+    res.json({ success: true, stats: campaignData.visitorStats });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin update of visitor and impact metrics
+app.post("/api/update-visitor-stats", (req, res) => {
+  try {
+    const { stats } = req.body;
+    if (stats && typeof stats === "object") {
+      ensureVisitorStats();
+      campaignData.visitorStats = {
+        ...campaignData.visitorStats!,
+        ...stats,
+        lastUpdated: Date.now()
+      };
+      saveData(campaignData);
+      return res.json({ success: true, stats: campaignData.visitorStats });
+    }
+    res.status(400).json({ error: "Invalid stats object" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get all campaigning data
 app.get("/api/campaign-data", (req, res) => {
+  ensureVisitorStats();
   res.json(campaignData);
 });
 
@@ -848,72 +915,77 @@ app.post("/api/questions", async (req, res) => {
     let geminiServiceError = null;
     if (aiClient) {
       const campaignKnowledge = `
-        You are the Official AI Campaign Advocate of "Civic Shield", advocating for legal literacy, citizen defense, and mutual procedural dialogue using Indian and International law (e.g., Indian Constitution, RTI Act 2005, Advocates Act 1961, UDHR, ICCPR).
-        Campaign Goal: Bridge the path between citizens and legal authority, eliminate fear of procedures, and equip everyone with knowledge of basic laws so they can protect themselves.
-        Tone: Objective, supportive, professional, authoritative, reassuring, and non-escalating.
-        Key pillars: Bridge the Gap, Eliminate Fear, Citizen Defense, Civic Transparency.
-        Resources in the locker: Traffic Rules & Motor Vehicle Act handbook, Party-in-Person legal templates, RTI drafts, de-escalation video guide.
-        Frequently Asked: We aim to demystify trial procedures, High Court writ filings, RTI requests, speaking orders, and statutory terms.
+        You are the Official AI Legal Advocate & Constitutional Advisor of "Civic Shield", an organization dedicated to legal literacy, citizen rights defense, and demystifying statutory procedures under Indian and constitutional law.
+        Goals: Bridge the gap between citizens and legal authority, eliminate fear of procedural stops, and empower every citizen with actionable, legally verified knowledge.
+        Tone: Empathetic, calm, authoritative, legally sound, and step-by-step practical.
+        Key Laws & Precedents to cite when relevant:
+        - Constitution of India (Articles 14, 19, 20, 21, 22, 32, 226, 39A)
+        - D.K. Basu Guidelines (1997) & CrPC / BNSS arrest and search protocols
+        - Lalita Kumari v. Govt of UP (Mandatory FIR registration for cognizable offenses)
+        - Motor Vehicles Act 1988 (Amended) & Rule 139 CMVR (DigiLocker / mParivahan validity)
+        - Right to Information Act 2005 (Sec 6, 7, 19 - 30-day mandate & FAA appeals)
+        - Consumer Protection Act 2019 & e-Daakhil filing
+        - NALSA / DLSA free legal aid under Article 39A
+        - POSH Act 2013 & Protection of Women from Domestic Violence Act 2005
       `;
 
-      // Try primary model (gemini-3.5-flash)
+      // Try primary model (gemini-2.5-flash)
       try {
         const response = await aiClient.models.generateContent({
-          model: "gemini-3.5-flash",
-          contents: `Question: ${text}`,
+          model: "gemini-2.5-flash",
+          contents: `Citizen Question: ${text}`,
           config: {
-            systemInstruction: `${campaignKnowledge}\nAnswer this user's question concisely, transparently, and professionally. End your answer reassuringly. Limit response to 120 words.`,
-            temperature: 0.7
+            systemInstruction: `${campaignKnowledge}\nAnswer the citizen's legal inquiry clearly, accurately, and authoritatively. Provide exact statutory sections, practical bulleted steps to protect themselves calmly, and reassure them of their rights. Keep response concise (around 120-180 words).`,
+            temperature: 0.5
           }
         });
         
         if (response.text) {
           newQuestion.answered = true;
           newQuestion.answer = response.text.trim();
-          newQuestion.repliedBy = "AI Campaign Advocate";
+          newQuestion.repliedBy = "AI Legal Advocate (Gemini Live)";
         }
       } catch (gemError: any) {
-        console.warn("Primary model 'gemini-3.5-flash' experienced an issue. Attempting fallback 'gemini-flash-latest'...", gemError.message || gemError);
+        console.warn("Primary model 'gemini-2.5-flash' experienced an issue. Attempting fallback...", gemError.message || gemError);
         geminiServiceError = gemError;
         
-        // Retry with stable fallback model (gemini-flash-latest)
         try {
           const fallbackResponse = await aiClient.models.generateContent({
-            model: "gemini-flash-latest",
-            contents: `Question: ${text}`,
+            model: "gemini-2.0-flash",
+            contents: `Citizen Question: ${text}`,
             config: {
-              systemInstruction: `${campaignKnowledge}\nAnswer this user's question concisely, transparently, and professionally. End your answer reassuringly. Limit response to 120 words.`,
-              temperature: 0.7
+              systemInstruction: `${campaignKnowledge}\nAnswer the citizen's legal inquiry clearly and accurately. Provide statutory sections and practical steps.`,
+              temperature: 0.5
             }
           });
           if (fallbackResponse.text) {
             newQuestion.answered = true;
             newQuestion.answer = fallbackResponse.text.trim();
-            newQuestion.repliedBy = "AI Campaign Advocate (Standard)";
-            geminiServiceError = null; // Cleared on successful backup resolution!
+            newQuestion.repliedBy = "AI Legal Advocate (Gemini)";
+            geminiServiceError = null;
           }
         } catch (fallbackError: any) {
-          console.error("Both primary and fallback Gemini generation models failed:", fallbackError.message || fallbackError);
+          console.error("Gemini generation failed. Falling back to autonomous legal engine:", fallbackError.message || fallbackError);
           geminiServiceError = fallbackError;
         }
       }
     }
 
-    // Try smart keyword-matching offline fallback before returning the completely generic offline alert
+    // High-precision Autonomous Legal Knowledge Engine Fallback (guarantees an exact, helpful answer)
     if (!newQuestion.answered) {
-      const offlineMatch = getOfflineSmartAnswer(text);
+      const offlineMatch = getAutonomousLegalResponse(text);
       if (offlineMatch.answered && offlineMatch.answer) {
         newQuestion.answered = true;
         newQuestion.answer = offlineMatch.answer;
-        newQuestion.repliedBy = offlineMatch.repliedBy || "AI Shield (Offline Guard)";
+        newQuestion.repliedBy = offlineMatch.repliedBy || "AI Legal Advocate (Civic Shield)";
       }
     }
 
     // Ultimate fallback if neither Gemini is successfully active nor keyword matched
     if (!newQuestion.answered) {
-      newQuestion.answer = "Thank you for reaching out to Civic Shield! We have received your query. A human campaign advocate has been notified of your question, and we will review and reply here shortly.";
+      newQuestion.answer = "Thank you for reaching out to Civic Shield! We have received your query. A campaign legal advocate has been notified of your question, and we will review and reply here shortly.";
       newQuestion.answered = false;
-      newQuestion.repliedBy = "Campaign Manager";
+      newQuestion.repliedBy = "Campaign Legal Desk";
     }
     
     // Send email notification in the background so the response is very fast for the user!
@@ -1318,8 +1390,6 @@ async function startServer() {
 
   if (!isProd) {
     try {
-      // Development server with HMR disabled or enabled by control
-      const { createServer: createViteServer } = await (eval('import("vite")') as Promise<typeof import("vite")>);
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",

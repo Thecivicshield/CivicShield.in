@@ -1,6 +1,23 @@
 import React, { useState } from "react";
-import { Trees, Coins, Scale, ShieldAlert, Landmark, Eye, FileText, LucideIcon, BookOpen, ChevronRight, ChevronLeft } from "lucide-react";
+import { 
+  Scale, 
+  ShieldAlert, 
+  Landmark, 
+  FileText, 
+  LucideIcon, 
+  Shield, 
+  Users, 
+  HeartHandshake, 
+  Globe2, 
+  Lock, 
+  ArrowRight, 
+  ShieldCheck, 
+  Sparkles,
+  BookOpen,
+  Award
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { playSynthSound } from "./JusticeShieldSection";
 
 interface Pillar {
   title: string;
@@ -14,226 +31,255 @@ interface PillarsSectionProps {
   isAdmin: boolean;
   onUpdatePillar: (index: number, updated: Pillar) => void;
   accentColor: string;
+  onOpenBookModal?: (initialIndex?: number) => void;
 }
 
-const IconMap: { [key: string]: LucideIcon } = {
-  Trees,
-  Coins,
-  Scale,
-  ShieldAlert,
-  Landmark,
-  Eye,
-  FileText
-};
+const DEFAULT_PILLARS = [
+  {
+    title: "Procedural Mastery & De-Escalation",
+    subtitle: "Conquering fear through verified protocols",
+    description: "Every citizen possesses the lawful right to be treated with dignity. We provide step-by-step procedural playbooks (anchored in Article 21 and the landmark D.K. Basu guidelines) to navigate roadside checks, administrative stops, and official interactions with composure and calm assertiveness.",
+    icon: ShieldAlert,
+    statute: "Article 21 & D.K. Basu Guidelines (1997)",
+    badge: "CORE IMMUNITY"
+  },
+  {
+    title: "Plain-Language Legal Translation",
+    subtitle: "Statutes translated into everyday language",
+    description: "Dense archaic statutes often disempower ordinary people. Civic Shield translates complex penal codes, Bharatiya Nyaya Sanhita rules, and High Court rulings into clear, plain-language scripts and quick-reference cheat sheets anyone can cite.",
+    icon: FileText,
+    statute: "Article 19(1)(a) & Article 39A (Free Legal Aid)",
+    badge: "ACCESSIBILITY"
+  },
+  {
+    title: "Non-Partisan Constitutional Literacy",
+    subtitle: "Equal justice above all divides",
+    description: "Constitutional protections belong to all citizens equally. We maintain strict non-partisan objectivity, grounding every educational brief, simulation, and resource strictly in established judicial precedent and constitutional text.",
+    icon: Scale,
+    statute: "Articles 14 & 15 (Equality Before Law)",
+    badge: "INTEGRITY"
+  },
+  {
+    title: "Anti-Coercion & Digital Privacy Defense",
+    subtitle: "Clear boundaries on official authority",
+    description: "Knowing official boundaries prevents unlawful coercion, illegal phone searches, or arbitrary fines. We teach citizens proper receipt demands, panchnama protocols, and official grievance redressal channels.",
+    icon: Lock,
+    statute: "K.S. Puttaswamy (2017) & CrPC / BNSS Seizure Rules",
+    badge: "DEFENSE"
+  }
+];
 
-export default function PillarsSection({ pillars, isAdmin, onUpdatePillar, accentColor }: PillarsSectionProps) {
-  const [activePageIndex, setActivePageIndex] = useState(0);
-  const [isFlipping, setIsFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<"next" | "prev">("next");
-
-  const handleTextChange = (index: number, key: keyof Pillar, val: string) => {
-    const updated = { ...pillars[index], [key]: val };
-    onUpdatePillar(index, updated);
-  };
-
-  const handlePageChange = (newIndex: number) => {
-    if (newIndex === activePageIndex || isFlipping) return;
-    
-    // Sound effects removed by user request
-
-    setFlipDirection(newIndex > activePageIndex ? "next" : "prev");
-    setIsFlipping(true);
-    
-    // Smooth timing for page flip animation
-    setTimeout(() => {
-      setActivePageIndex(newIndex);
-    }, 180);
-
-    setTimeout(() => {
-      setIsFlipping(false);
-    }, 450);
-  };
-
-  const activePillar = pillars[activePageIndex] || pillars[0];
-  const ActiveIcon = IconMap[activePillar.iconName] || Scale;
+export default function PillarsSection({
+  pillars,
+  isAdmin,
+  onUpdatePillar,
+  accentColor,
+  onOpenBookModal
+}: PillarsSectionProps) {
+  const [activeTab, setActiveTab] = useState<"pillars" | "mission" | "charter">("pillars");
 
   return (
-    <motion.section 
+    <section 
       id="pillars" 
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8 }}
-      className="py-24 bg-[#001233] border-t border-b border-[#d4af37]/25 relative overflow-hidden"
+      className="py-20 bg-[#001233] border-t border-b border-[#d4af37]/25 relative overflow-hidden"
     >
-      {/* Decorative Blueprint elements */}
-      <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-[#d4af37]/10 pointer-events-none" />
-      <div className="absolute top-12 left-12 font-mono text-[7px] text-[#d4af37]/30 tracking-widest hidden lg:block">
-        BOOK_ID: STATUTORY_CONSTITUTION_v4
-      </div>
+      {/* Background radial glow & grid */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#00266e_0%,#001233_65%,#000814_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#d4af3708_1px,transparent_1px),linear-gradient(to_bottom,#d4af3708_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
         
-        {/* Header Title */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] text-xs font-mono tracking-wider uppercase mb-4">
-            <BookOpen className="w-3.5 h-3.5" /> Interactive Constitutional Archive
+        {/* SECTION HEADER */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-3xl mx-auto space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 text-[#ffd754] text-xs font-mono tracking-widest uppercase shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#ffd754]" />
+            <span>STUDY CENTER • FOUNDATIONAL PILLARS</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-normal italic tracking-tight text-white mb-4">
-            The Ledger of <span className="text-[#d4af37] font-serif not-italic font-bold">Sovereign Core Goals</span>
+          
+          <h2 className="text-3xl sm:text-4xl font-serif tracking-tight text-white leading-tight">
+            Foundations of <span className="text-[#ffd754] font-serif font-bold">Civic Shield</span>
           </h2>
-          <p className="text-gray-300 text-sm max-w-xl mx-auto leading-relaxed font-light">
-            Flip through the sovereign core goals of our movement. Click a goal index on the Left Page to trigger a mechanical page turn revealing the specific strategic charter.
+          
+          <p className="text-gray-300 text-sm sm:text-base leading-relaxed font-light">
+            Transforming dense constitutional law into accessible, de-escalating knowledge for every citizen.
           </p>
-        </div>
 
-        {/* INTERACTIVE BOOK STRUCTURE */}
-        <div className="max-w-5xl mx-auto">
-          <div className="relative bg-gradient-to-r from-[#000a1a] via-[#051126] to-[#000a1a] border-y-4 md:border-4 border-[#d4af37]/60 rounded-md p-4 sm:p-8 md:p-10 shadow-[0_30px_70px_rgba(0,0,0,0.9)] min-h-[460px] md:min-h-[520px] flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 md:perspective-[1500px]">
-            
-            {/* Book Spine Center Gutter */}
-            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-6 bg-gradient-to-r from-black/40 via-black/80 to-black/40 border-x border-[#d4af37]/10 z-20 shadow-inner" />
-            
-            {/* Left Page: Table of Contents & Goal Selector */}
-            <div className="flex flex-col justify-between pr-0 md:pr-6 z-10">
-              <div className="space-y-6">
-                <div className="border-b border-[#d4af37]/20 pb-3">
-                  <p className="font-mono text-[9px] text-[#d4af37] tracking-[0.25em] uppercase">INDEX OF CORE MISSIONS</p>
-                  <h3 className="text-xl font-serif font-bold text-white mt-1">Sovereign Goals Index</h3>
-                </div>
+          {/* Navigation Tabs */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2.5">
+            {[
+              { id: "pillars", label: "4 Core Pillars", icon: Shield },
+              { id: "mission", label: "Founding Mission", icon: Users },
+              { id: "charter", label: "Citizen Charter & Pledge", icon: HeartHandshake }
+            ].map((tab) => {
+              const TabIcon = tab.icon;
+              const isSelected = activeTab === tab.id;
 
-                <div className="space-y-3.5">
-                  {pillars.map((pillar, idx) => {
-                    const ChapterIcon = IconMap[pillar.iconName] || Scale;
-                    const isActive = idx === activePageIndex;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    playSynthSound("click");
+                    setActiveTab(tab.id as any);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border ${
+                    isSelected
+                      ? "bg-gradient-to-r from-[#d4af37] to-[#ffd754] text-[#001a4d] border-[#ffd754] shadow-[0_0_20px_rgba(212,175,55,0.35)] scale-105"
+                      : "bg-[#000d20]/80 text-gray-300 border-[#d4af37]/25 hover:border-[#ffd754] hover:text-white hover:bg-[#00173d]"
+                  }`}
+                >
+                  <TabIcon className={`w-3.5 h-3.5 ${isSelected ? "text-[#001a4d]" : "text-[#ffd754]"}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
 
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handlePageChange(idx)}
-                        className={`w-full text-left p-3.5 rounded-sm border transition-all duration-300 flex items-center gap-3.5 cursor-pointer ${
-                          isActive
-                            ? "bg-[#d4af37] text-black border-[#d4af37] font-bold shadow-[0_5px_15px_rgba(212,175,55,0.15)]"
-                            : "bg-black/50 border-gray-800 text-gray-300 hover:border-[#d4af37]/30 hover:text-white"
-                        }`}
-                      >
-                        <div className={`p-1.5 rounded-sm ${isActive ? "bg-black/10 text-black" : "bg-[#d4af37]/10 text-[#d4af37]"}`}>
-                          <ChapterIcon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-mono text-[8px] opacity-75">GOAL 0{idx + 1}</p>
-                          <p className="text-xs tracking-wide uppercase font-semibold">{pillar.title}</p>
-                        </div>
-                        <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? "translate-x-1" : "opacity-40"}`} />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Book footer information */}
-              <div className="pt-6 border-t border-gray-900 mt-6 flex justify-between items-center font-mono text-[9px] text-gray-500">
-                <span>VOL. III (CON-CIVIC)</span>
-                <span>LEFT PAGE_01</span>
-              </div>
-            </div>
-
-            {/* Right Page: Selected Goal Content (with page flip animation) */}
-            <div className="relative pl-0 md:pl-6 z-10 flex flex-col justify-between min-h-[280px]">
-              
-              {/* PAGE FLIPPING CONTAINER */}
-              <div className="relative flex-1">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activePageIndex}
-                    initial={{
-                      opacity: 0.1,
-                      rotateY: flipDirection === "next" ? 85 : -85,
-                      transformOrigin: flipDirection === "next" ? "left center" : "right center"
-                    }}
-                    animate={{
-                      opacity: 1,
-                      rotateY: 0
-                    }}
-                    exit={{
-                      opacity: 0.1,
-                      rotateY: flipDirection === "next" ? -85 : 85,
-                      transformOrigin: flipDirection === "next" ? "right center" : "left center"
-                    }}
-                    transition={{ duration: 0.38, ease: "easeInOut" }}
-                    className="space-y-5 h-full flex flex-col justify-between"
-                  >
-                    <div className="space-y-4">
-                      {/* Goal Title Badge */}
-                      <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="p-2 bg-[#d4af37]/10 border border-[#d4af37]/25 rounded-sm text-[#d4af37]">
-                            <ActiveIcon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="font-mono text-[8px] text-[#d4af37] tracking-widest">GOAL SECTION 0{activePageIndex + 1}</p>
-                            <p className="text-[10px] font-mono text-gray-400">UNSEALED PRESERVER CODE</p>
-                          </div>
-                        </div>
-                        <span className="font-mono text-[9px] text-gray-500 font-bold uppercase">CS_GOAL_0{activePageIndex + 1}</span>
+        {/* TAB 1: 4 CORE PILLARS */}
+        {activeTab === "pillars" && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            {DEFAULT_PILLARS.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="bg-gradient-to-b from-[#001947]/90 to-[#000c22]/90 border border-[#d4af37]/35 rounded-xl p-6 sm:p-7 shadow-xl hover:border-[#ffd754] transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-lg bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#ffd754] shadow-inner">
+                        <Icon className="w-5 h-5" />
                       </div>
-
-                      {/* Content Form Block (Editable if Admin Mode is enabled) */}
-                      <div className="space-y-4">
-                        {isAdmin ? (
-                          <div className="space-y-2">
-                            <label className="font-mono text-[9px] text-[#d4af37] block">GOAL TITLE</label>
-                            <input
-                              type="text"
-                              value={activePillar.title}
-                              onChange={(e) => handleTextChange(activePageIndex, "title", e.target.value)}
-                              className="w-full bg-[#001a4d] text-sm font-bold text-white mb-2 focus:border-[#d4af37] focus:outline-none border border-[#d4af37]/30 rounded-sm px-2.5 py-1.5"
-                            />
-                          </div>
-                        ) : (
-                          <h4 className="text-lg font-serif text-[#d4af37] font-semibold tracking-wide">
-                            {activePillar.title}
-                          </h4>
-                        )}
-
-                        {isAdmin ? (
-                          <div className="space-y-2">
-                            <label className="font-mono text-[9px] text-[#d4af37] block">GOAL CONTENT BODY</label>
-                            <textarea
-                              value={activePillar.description}
-                              onChange={(e) => handleTextChange(activePageIndex, "description", e.target.value)}
-                              rows={5}
-                              className="w-full bg-[#001a4d] text-xs text-gray-200 focus:border-[#d4af37] focus:outline-none border border-[#d4af37]/30 rounded-sm px-2.5 py-1.5 font-sans leading-relaxed"
-                            />
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-200 font-sans leading-relaxed font-light whitespace-pre-line">
-                            {activePillar.description}
-                          </p>
-                        )}
-                      </div>
+                      <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-black/60 border border-[#d4af37]/40 text-[#ffd754] tracking-wider uppercase">
+                        {pillar.badge}
+                      </span>
                     </div>
 
-                    {isAdmin && (
-                      <div className="text-[9.5px] font-mono text-[#d4af37]/65 italic animate-pulse">
-                        ✏️ Real-time updates active. Type above to edit goal records.
-                      </div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-white leading-snug">
+                        {pillar.title}
+                      </h3>
+                      <p className="text-xs text-[#ffd754] font-serif italic mt-0.5">
+                        {pillar.subtitle}
+                      </p>
+                    </div>
 
-              {/* Page Number Right page */}
-              <div className="pt-6 border-t border-gray-900 flex justify-between items-center font-mono text-[9px] text-gray-500">
-                <span>CIVIC_SHIELD_HANDBOOK_ACT</span>
-                <span>RIGHT PAGE_02</span>
-              </div>
+                    <p className="text-xs text-gray-300 font-light leading-relaxed">
+                      {pillar.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#d4af37]/20 flex items-center justify-between text-xs">
+                    <span className="font-mono text-[10px] text-gray-400">
+                      Anchor: <strong className="text-gray-200">{pillar.statute}</strong>
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {/* TAB 2: FOUNDING MISSION */}
+        {activeTab === "mission" && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="bg-[#000e26]/90 border border-[#d4af37]/40 rounded-xl p-6 sm:p-10 shadow-2xl space-y-6 max-w-4xl mx-auto"
+          >
+            <div className="flex items-center gap-3 text-[#ffd754]">
+              <Users className="w-6 h-6 text-[#ffd754]" />
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                Our Founding Mission
+              </h3>
             </div>
 
+            <p className="text-sm sm:text-base text-gray-200 leading-relaxed font-light">
+              Civic Shield was founded on a simple truth: <strong>rights that are not understood cannot be exercised.</strong> When citizens encounter authority with fear or ignorance, power imbalances cause unnecessary friction and distress.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="p-4 rounded-lg bg-black/40 border border-slate-800 space-y-2">
+                <span className="font-mono text-xs font-bold text-[#ffd754] block">1. CLARITY</span>
+                <p className="text-xs text-gray-300 font-light leading-relaxed">
+                  Removing dense legal jargon so every citizen knows exactly what is lawful and what is not.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-black/40 border border-slate-800 space-y-2">
+                <span className="font-mono text-xs font-bold text-[#ffd754] block">2. DE-ESCALATION</span>
+                <p className="text-xs text-gray-300 font-light leading-relaxed">
+                  Teaching calm assertiveness, proper dialogue, and respectful boundary-setting during stops.
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-black/40 border border-slate-800 space-y-2">
+                <span className="font-mono text-xs font-bold text-[#ffd754] block">3. IMPARTIALITY</span>
+                <p className="text-xs text-gray-300 font-light leading-relaxed">
+                  Remaining 100% non-partisan, anchored purely in constitutional law and judicial rulings.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* TAB 3: CITIZEN CHARTER & PLEDGE */}
+        {activeTab === "charter" && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="bg-[#000e26]/90 border border-[#d4af37]/40 rounded-xl p-6 sm:p-10 shadow-2xl space-y-6 max-w-4xl mx-auto"
+          >
+            <div className="flex items-center gap-3 text-[#ffd754]">
+              <HeartHandshake className="w-6 h-6 text-[#ffd754]" />
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                The Citizen Charter & Civic Pledge
+              </h3>
+            </div>
+
+            <div className="space-y-4 text-xs sm:text-sm text-gray-300 leading-relaxed font-light">
+              <p>
+                As citizens committed to constitutional order, we uphold mutual accountability between the public and administrative authorities:
+              </p>
+              <ul className="space-y-2.5 list-disc pl-5">
+                <li><strong className="text-white">Dignity in Dialogue:</strong> We communicate with law enforcement with composure, civility, and firm adherence to statutory rights.</li>
+                <li><strong className="text-white">Empirical Verification:</strong> We cite verified statutes, Supreme Court guidelines, and official rules rather than hearsay.</li>
+                <li><strong className="text-white">Democratic Participation:</strong> We educate our peers, share plain-language legal resources, and defend due process for all.</li>
+              </ul>
+            </div>
+          </motion.div>
+        )}
+
+        {/* CALLOUT TO OPEN THE BOOK OF STRATEGIC GOALS */}
+        {onOpenBookModal && (
+          <div className="text-center pt-4">
+            <button
+              onClick={() => {
+                playSynthSound("success");
+                onOpenBookModal(0);
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#00173d] border border-[#d4af37]/50 text-[#ffd754] hover:bg-[#d4af37] hover:text-[#001a4d] transition-all font-mono text-xs font-bold uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Inspect Strategic Goals Codex (6 Directives)</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </button>
           </div>
-        </div>
+        )}
 
       </div>
-    </motion.section>
+    </section>
   );
 }

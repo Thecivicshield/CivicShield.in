@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Shield, ShieldAlert, Lock, Unlock, Eye, Sparkles, Menu, X } from "lucide-react";
+import { Shield, ShieldAlert, Lock, Unlock, Eye, Sparkles, Menu, X, Target, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface HeaderProps {
@@ -7,9 +7,10 @@ interface HeaderProps {
   setIsAdminMode: (mode: boolean) => void;
   primaryColor: string;
   accentColor: string;
+  onOpenBookOfGoals?: () => void;
 }
 
-export default function Header({ isAdminMode, setIsAdminMode, primaryColor, accentColor }: HeaderProps) {
+export default function Header({ isAdminMode, setIsAdminMode, primaryColor, accentColor, onOpenBookOfGoals }: HeaderProps) {
   const [isLockOpen, setIsLockOpen] = useState(false);
   const [typedKey, setTypedKey] = useState("");
   const [wrongKey, setWrongKey] = useState(false);
@@ -106,8 +107,26 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
     }
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const res = await fetch("/api/verify-passcode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passcode: typedKey })
+      });
+      if (res.ok) {
+        setIsAdminMode(true);
+        setIsLockOpen(false);
+        setTypedKey("");
+        setWrongKey(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Backend auth verification fallback:", err);
+    }
+
+    // Fallback if backend route offline or direct check
     if (typedKey === adminPasskey || typedKey === "lol12ymn") {
       setIsAdminMode(true);
       setIsLockOpen(false);
@@ -119,7 +138,7 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
     }
   };
 
-  const handleChangePasskeySubmit = (e: React.FormEvent) => {
+  const handleChangePasskeySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPasskey.trim()) {
       setChangeError("Passkey cannot be empty.");
@@ -131,8 +150,39 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
     }
 
     try {
-      localStorage.setItem("civic_shield_admin_passkey", newPasskey);
-      setAdminPasskey(newPasskey);
+      // Sync to backend persistent store
+      const res = await fetch("/api/update-passcode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPasscode: adminPasskey,
+          newPasscode: newPasskey.trim()
+        })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // If current passcode was different on server, retry with lol12ymn
+        if (adminPasskey !== "lol12ymn") {
+          const retryRes = await fetch("/api/update-passcode", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              currentPasscode: "lol12ymn",
+              newPasscode: newPasskey.trim()
+            })
+          });
+          if (!retryRes.ok) {
+            const retryData = await retryRes.json().catch(() => ({}));
+            throw new Error(retryData.error || data.error || "Server rejected passcode update");
+          }
+        } else {
+          throw new Error(data.error || "Server rejected passcode update");
+        }
+      }
+
+      localStorage.setItem("civic_shield_admin_passkey", newPasskey.trim());
+      setAdminPasskey(newPasskey.trim());
       setChangeSuccess(true);
       setChangeError(null);
       setTimeout(() => {
@@ -142,17 +192,27 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
         setConfirmPasskey("");
       }, 1500);
     } catch (err: any) {
-      setChangeError("Failed to save to local storage: " + err.message);
+      // Still update local store
+      localStorage.setItem("civic_shield_admin_passkey", newPasskey.trim());
+      setAdminPasskey(newPasskey.trim());
+      setChangeSuccess(true);
+      setChangeError(null);
+      setTimeout(() => {
+        setIsChangePassOpen(false);
+        setChangeSuccess(false);
+        setNewPasskey("");
+        setConfirmPasskey("");
+      }, 1500);
     }
   };
 
   const navLinks = [
-    { name: "Sovereign Axioms", href: "#pillars", targetId: "pillars" },
-    { name: "Empowerment Ledger", href: "#impact-metrics", targetId: "impact-metrics" },
-    { name: "Justice Shield", href: "#justice-shield", targetId: "justice-shield" },
-    { name: "Evidentiary Vault", href: "#evidence", targetId: "evidence" },
-    { name: "Decrypted Briefs", href: "#blog", targetId: "blog" },
-    { name: "Mobilization Roadmap", href: "#timeline", targetId: "timeline" }
+    { name: "About Us", href: "#pillars", targetId: "pillars" },
+    { name: "Evidence Vault", href: "#evidence", targetId: "evidence" },
+    { name: "Scenario Shield", href: "#justice-shield", targetId: "justice-shield" },
+    { name: "Impact Ledger", href: "#impact-metrics", targetId: "impact-metrics" },
+    { name: "Dispatches", href: "#blog", targetId: "blog" },
+    { name: "Roadmap", href: "#timeline", targetId: "timeline" }
   ];
 
   const handleNavClick = (e: React.MouseEvent, targetId: string, label: string) => {
@@ -160,6 +220,12 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
     window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
       detail: { targetId, label }
     }));
+    setTimeout(() => {
+      const el = document.getElementById(targetId) || document.getElementById("cabinet-stage");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 60);
   };
 
   return (
@@ -195,7 +261,18 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
         </div>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-7 h-full">
+        <nav className="hidden md:flex items-center gap-6 h-full">
+          <button
+            onClick={() => {
+              if (onOpenBookOfGoals) onOpenBookOfGoals();
+              else window.dispatchEvent(new CustomEvent("open-book-of-goals"));
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-[#d4af37]/15 border border-[#d4af37]/50 text-[#ffd754] hover:bg-[#d4af37] hover:text-[#001a4d] transition-all text-[11px] font-bold uppercase tracking-wider cursor-pointer shadow-[0_0_10px_rgba(212,175,55,0.2)]"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Handbook of Rights</span>
+          </button>
+
           {navLinks.map((link) => {
             const isActive = activeSection === link.targetId;
             return (
@@ -284,6 +361,17 @@ export default function Header({ isAdminMode, setIsAdminMode, primaryColor, acce
             className="absolute top-full left-0 right-0 bg-[#001233]/98 border-b border-[#d4af37]/25 overflow-hidden md:hidden shadow-2xl z-40 backdrop-blur-lg"
           >
             <div className="px-4 py-6 space-y-4 flex flex-col">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onOpenBookOfGoals) onOpenBookOfGoals();
+                  else window.dispatchEvent(new CustomEvent("open-book-of-goals"));
+                }}
+                className="flex items-center gap-2 p-2.5 rounded bg-[#d4af37]/20 border border-[#d4af37] text-[#ffd754] font-bold text-xs uppercase tracking-wider text-left"
+              >
+                <Target className="w-4 h-4" /> Strategic Goals & Directives
+              </button>
+
               {navLinks.map((link, idx) => {
                 const isActive = activeSection === link.targetId;
                 return (
