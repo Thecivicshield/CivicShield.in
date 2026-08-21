@@ -3,7 +3,7 @@ import {
   MessageSquare, X, Send, ShieldQuestion, BadgeHelp, Info, 
   Sparkles, UserCheck, Trash2, FileText, Download, Cpu, HelpCircle,
   Plus, Link2, UploadCloud, CheckCircle2, ChevronDown, ChevronUp, RefreshCw,
-  Scale, BookOpen, ShieldCheck, CornerDownLeft
+  Scale, BookOpen, ShieldCheck, CornerDownLeft, Copy, Check, RotateCcw
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { AnonymousQuestion, EvidenceItem } from "../types";
@@ -222,7 +222,7 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
     return [
       {
         sender: 'bot',
-        text: "Welcome to Civic Shield Anonymous Desk. Ask me anything about administrative litigation rules, self-legal representation protocols, or basic statutory self-defense. I'm here to eliminate fear and empower your voice.",
+        text: "Welcome to Civic Shield AI Advocate. Powered by the Gemini API with real-time statutory knowledge, I provide immediate, constitutionally grounded guidance for traffic stops, police encounters, RTI petitions, tenant disputes, and pro-se court appearances. How can I assist your situation today?",
         time: "Just now"
       }
     ];
@@ -256,48 +256,95 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
     { label: "👮 FIR Registration", text: "What should I do if the police station refuses to register my FIR?" }
   ];
 
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const handleCopyMessage = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  const handleResetChat = () => {
+    if (confirm("Reset chat conversation history?")) {
+      setConversation([
+        {
+          sender: 'bot',
+          text: "Welcome to Civic Shield AI Advocate. I am powered by Gemini 3.7 Flash with Google Search Grounding to provide real-time, constitutionally verified legal guidance. Ask me anything about police stops, RTI filings, tenant protections, court self-representation, or constitutional rights!",
+          time: "Just now"
+        }
+      ]);
+    }
+  };
+
   const handleSubmit = async (e?: React.FormEvent, customMsg?: string) => {
     if (e) e.preventDefault();
     const textToSend = (customMsg !== undefined ? customMsg : messageText).trim();
-    if (!textToSend) return;
+    if (!textToSend || loading) return;
 
     setMessageText("");
     
     // Add user message to local stream immediately
     const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setConversation(prev => [...prev, { sender: 'user', text: textToSend, time: userTime }]);
+    const currentConv = [...conversation, { sender: 'user' as const, text: textToSend, time: userTime }];
+    setConversation(currentConv);
     setLoading(true);
 
     try {
       // Trigger live chat interaction tracking in background
       fetch("/api/track-chat", { method: "POST" }).catch(() => {});
 
-      // Send to full-stack API
-      const result = await onNewQuestion(textToSend);
-      if (result && result.answer) {
-        // Display the specific real-time answer returned by the backend
-        setConversation(prev => [...prev, { 
-          sender: 'bot', 
-          text: result.answer, 
-          time: userTime 
-        }]);
+      // Call the conversational multi-turn AI endpoint with message history
+      const historyPayload = currentConv.slice(-10).map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        content: msg.text
+      }));
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: textToSend,
+          history: historyPayload
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.answer) {
+          setConversation(prev => [...prev, { 
+            sender: 'bot', 
+            text: data.answer, 
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        } else {
+          throw new Error("No answer in response");
+        }
       } else {
-        // Instant Autonomous Engine Fallback (Guarantees immediate legal advice without API key)
-        const autoAnswer = getAutonomousLegalResponse(textToSend);
-        setConversation(prev => [...prev, { 
-          sender: 'bot', 
-          text: autoAnswer.answer, 
-          time: userTime 
-        }]);
+        // Fallback to onNewQuestion or autonomous engine
+        const result = await onNewQuestion(textToSend);
+        if (result && result.answer) {
+          setConversation(prev => [...prev, { 
+            sender: 'bot', 
+            text: result.answer, 
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        } else {
+          const autoAnswer = getAutonomousLegalResponse(textToSend);
+          setConversation(prev => [...prev, { 
+            sender: 'bot', 
+            text: autoAnswer.answer, 
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        }
       }
     } catch (err) {
-      console.warn("Backend question submission fallback:", err);
-      // Autonomous Instant Response even on network disconnect
+      console.warn("Backend chat call fallback:", err);
+      // Autonomous Instant Response even if offline
       const autoAnswer = getAutonomousLegalResponse(textToSend);
       setConversation(prev => [...prev, { 
         sender: 'bot', 
         text: autoAnswer.answer, 
-        time: userTime 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
     } finally {
       setLoading(false);
@@ -379,38 +426,29 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-[#d4af37]" />
 
             {/* Header */}
-            <div className="bg-[#001233] px-4 py-3.5 border-b border-[#d4af37]/25 flex items-center justify-between relative z-10">
+            <div className="bg-[#001233] px-4 py-3 border-b border-[#d4af37]/25 flex items-center justify-between relative z-10">
               <div className="flex items-center gap-2.5">
                 <div className="p-1.5 rounded-sm bg-[#d4af37]/10 border border-[#d4af37]/25 text-[#d4af37] relative">
                   <ShieldQuestion className="w-5 h-5" />
-                  <span className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full bg-[#d4af37] animate-ping" />
+                  <span className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 </div>
                 <div className="text-left">
                   <h3 className="text-xs font-serif font-bold text-white tracking-wide flex items-center gap-1.5 uppercase">
-                    Advocacy Assistance Center <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
+                    Civic Shield AI Assistant <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
                   </h3>
-                  <p className="text-[9px] text-[#d4af37]/80 flex items-center gap-1 font-mono tracking-widest uppercase">
-                    <Cpu className="w-3 h-3 text-[#d4af37]" /> SECURED_ORB_ACTIVE_NODE
+                  <p className="text-[9px] text-emerald-400 flex items-center gap-1 font-mono tracking-widest uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> GEMINI AI ADVOCATE ACTIVE
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => {
-                    if(confirm("Are you sure you want to clear your local secure session history?")) {
-                      setConversation([
-                        {
-                          sender: 'bot',
-                          text: "Welcome to Civic Shield Anonymous Desk. Ask me anything about administrative litigation rules, self-legal representation protocols, or basic statutory self-defense. I'm here to eliminate fear and empower your voice.",
-                          time: "Just now"
-                        }
-                      ]);
-                    }
-                  }}
-                  title="Clear Secure Session"
-                  className="p-1.5 rounded-sm text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
+                  onClick={handleResetChat}
+                  title="Reset conversation (New Chat)"
+                  className="p-1.5 rounded-sm text-gray-400 hover:text-[#ffd754] hover:bg-[#d4af37]/10 transition-all cursor-pointer flex items-center gap-1 text-[9px] font-mono"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">New Chat</span>
                 </button>
                 <button 
                   onClick={() => setIsOpen(false)}
@@ -426,17 +464,17 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
             <div className="flex bg-[#001233] border-b border-[#d4af37]/15 text-[9.5px] font-mono relative z-10 select-none">
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`flex-1 py-3 text-center font-bold tracking-widest uppercase border-b-2 transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 text-center font-bold tracking-widest uppercase border-b-2 transition-all cursor-pointer ${
                   activeTab === 'chat' 
                     ? "border-[#d4af37] text-[#d4af37] bg-[#001a4d]/75 font-bold" 
                     : "border-transparent text-gray-400 hover:text-white"
                 }`}
               >
-                Ask Advocate
+                AI Chat
               </button>
               <button
                 onClick={() => setActiveTab('directory')}
-                className={`flex-1 py-3 text-center font-bold tracking-widest uppercase border-b-2 transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 text-center font-bold tracking-widest uppercase border-b-2 transition-all cursor-pointer ${
                   activeTab === 'directory' 
                     ? "border-[#d4af37] text-[#d4af37] bg-[#001a4d]/75 font-bold" 
                     : "border-transparent text-gray-400 hover:text-white"
@@ -446,7 +484,7 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
               </button>
               <button
                 onClick={() => setActiveTab('resources')}
-                className={`flex-1 py-3 text-center font-bold tracking-widest uppercase border-b-2 transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 text-center font-bold tracking-widest uppercase border-b-2 transition-all cursor-pointer ${
                   activeTab === 'resources' 
                     ? "border-[#d4af37] text-[#d4af37] bg-[#001a4d]/75 font-bold" 
                     : "border-transparent text-gray-400 hover:text-white"
@@ -471,13 +509,13 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                     {/* Chat log body */}
                     <div 
                       ref={scrollRef}
-                      className="flex-1 p-4 overflow-y-auto space-y-4 text-left"
+                      className="flex-1 p-3.5 overflow-y-auto space-y-3.5 text-left"
                     >
-                      <div className="p-3 rounded-sm bg-[#d4af37]/5 border border-[#d4af37]/20 text-[10px] text-gray-200 leading-relaxed flex items-start gap-2.5">
+                      <div className="p-2.5 rounded-sm bg-[#d4af37]/5 border border-[#d4af37]/20 text-[10px] text-gray-200 leading-relaxed flex items-start gap-2">
                         <Info className="w-4 h-4 text-[#d4af37] shrink-0 mt-0.5" />
                         <div>
-                          <strong className="text-[#d4af37] block font-mono mb-0.5">ANONYMITY LOCK_ON</strong>
-                          All transmissions are entirely local and protected. Ask questions to demystify complex court codes or administrative overreach.
+                          <strong className="text-[#d4af37] block font-mono mb-0.5">CONSTITUTIONAL & CIVIC ADVOCATE</strong>
+                          Ask anything freely. The AI processes your inquiry with verified statutory references, precedents, and step-by-step procedures.
                         </div>
                       </div>
 
@@ -487,19 +525,38 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.25 }}
-                          className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+                          className={`flex flex-col group ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                         >
                           <div 
-                            className={`max-w-[90%] rounded-sm px-3.5 py-2.5 text-xs shadow-md leading-relaxed whitespace-pre-wrap font-sans ${
+                            className={`max-w-[92%] rounded px-3.5 py-2.5 text-xs shadow-md leading-relaxed whitespace-pre-wrap font-sans relative ${
                               msg.sender === 'user'
-                                ? 'bg-[#d4af37] text-[#001233] font-semibold shadow-[0_0_10px_rgba(212,175,55,0.2)]'
+                                ? 'bg-[#d4af37] text-[#001233] font-medium shadow-[0_0_10px_rgba(212,175,55,0.2)]'
                                 : 'bg-[#001233] border border-[#d4af37]/25 text-gray-100'
                             }`}
                           >
                             {msg.sender === 'bot' && (
-                              <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#d4af37] pb-1.5 mb-1.5 border-b border-[#d4af37]/15">
-                                <ShieldCheck className="w-3 h-3 text-[#d4af37]" />
-                                <span>Civic Legal Advocate</span>
+                              <div className="flex items-center justify-between gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#d4af37] pb-1.5 mb-1.5 border-b border-[#d4af37]/15">
+                                <div className="flex items-center gap-1.5">
+                                  <ShieldCheck className="w-3.5 h-3.5 text-[#d4af37]" />
+                                  <span className="font-bold">Civic Shield AI Advocate</span>
+                                </div>
+                                <button
+                                  onClick={() => handleCopyMessage(msg.text, idx)}
+                                  title="Copy message"
+                                  className="text-gray-400 hover:text-[#ffd754] p-0.5 rounded transition-colors flex items-center gap-1 text-[8px] font-mono lowercase"
+                                >
+                                  {copiedIdx === idx ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-emerald-400" />
+                                      <span className="text-emerald-400">copied</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3" />
+                                      <span>copy</span>
+                                    </>
+                                  )}
+                                </button>
                               </div>
                             )}
                             {msg.sender === 'bot' ? renderFormattedMessage(msg.text) : msg.text}
@@ -509,22 +566,22 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                       ))}
 
                       {loading && (
-                        <div className="flex items-center gap-2 text-[10px] text-[#d4af37]/80 italic font-mono pl-1">
+                        <div className="flex items-center gap-2 text-[10px] text-[#d4af37] font-mono pl-1 py-1">
                           <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-ping" />
-                          Advocate node formulating statutory guidance...
+                          <span>Gemini AI is analyzing your inquiry & generating legal guidance...</span>
                         </div>
                       )}
                     </div>
 
                     {/* Quick Inquiry Prompts Carousel */}
-                    <div className="px-3 py-2 bg-[#001233]/70 border-t border-[#d4af37]/10 flex items-center gap-1.5 overflow-x-auto no-scrollbar select-none">
-                      <span className="text-[8px] font-mono text-gray-400 shrink-0 uppercase tracking-wider font-bold">Quick:</span>
+                    <div className="px-3 py-1.5 bg-[#001233]/70 border-t border-[#d4af37]/10 flex items-center gap-1.5 overflow-x-auto no-scrollbar select-none">
+                      <span className="text-[8px] font-mono text-[#d4af37] shrink-0 uppercase tracking-wider font-bold">Quick:</span>
                       {QUICK_PROMPTS.map((qp, qpIdx) => (
                         <button
                           key={qpIdx}
                           onClick={() => handleSubmit(undefined, qp.text)}
                           disabled={loading}
-                          className="shrink-0 text-[9px] font-mono px-2 py-1 bg-[#001a4d] hover:bg-[#d4af37] text-gray-300 hover:text-[#001233] border border-[#d4af37]/20 rounded-full transition-all cursor-pointer whitespace-nowrap active:scale-95 disabled:opacity-50"
+                          className="shrink-0 text-[9px] font-mono px-2 py-0.5 bg-[#001a4d] hover:bg-[#d4af37] text-gray-300 hover:text-[#001233] border border-[#d4af37]/20 rounded-full transition-all cursor-pointer whitespace-nowrap active:scale-95 disabled:opacity-50"
                         >
                           {qp.label}
                         </button>
@@ -534,23 +591,31 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                     {/* Form input */}
                     <form 
                       onSubmit={(e) => handleSubmit(e)}
-                      className="p-2.5 border-t border-[#d4af37]/15 bg-[#001233]/90 flex gap-2"
+                      className="p-2.5 border-t border-[#d4af37]/15 bg-[#001233]/95 flex gap-2 items-center"
                     >
                       <input
                         type="text"
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
-                        placeholder="Inquire about police stops, RTI, tenant rights, pro-se..."
-                        className="flex-1 px-3.5 py-2.5 text-xs rounded-sm border border-gray-800 focus:border-[#d4af37] focus:outline-none text-white bg-[#001a4d] placeholder-gray-500 font-sans"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSubmit();
+                          }
+                        }}
+                        placeholder="Ask any legal question (e.g., traffic stops, police rights, RTI, tenant law)..."
+                        disabled={loading}
+                        className="flex-1 px-3.5 py-2 text-xs rounded-sm border border-gray-800 focus:border-[#d4af37] focus:outline-none text-white bg-[#001a4d] placeholder-gray-500 font-sans disabled:opacity-50"
                       />
                       <motion.button
                         type="submit"
                         disabled={!messageText.trim() || loading}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="p-2.5 px-3.5 bg-[#d4af37] hover:bg-[#bca032] disabled:bg-[#002366]/40 text-[#001233] font-bold rounded-sm transition-all cursor-pointer flex items-center justify-center shrink-0"
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                        className="p-2 px-3.5 bg-[#d4af37] hover:bg-[#bca032] disabled:bg-[#002366]/40 text-[#001233] font-bold rounded-sm transition-all cursor-pointer flex items-center gap-1.5 shrink-0 text-xs shadow-sm disabled:cursor-not-allowed"
                       >
-                        <Send className="w-4 h-4" />
+                        <span>Send</span>
+                        <Send className="w-3.5 h-3.5" />
                       </motion.button>
                     </form>
                   </motion.div>

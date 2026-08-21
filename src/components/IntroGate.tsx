@@ -70,8 +70,8 @@ export default function IntroGate({
         <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[400px] h-[400px] bg-[#d4af37]/10 rounded-full blur-[100px] pointer-events-none" />
         
         {/* Left Half of Majestic Golden Shield */}
-        <div className="relative w-28 h-56 sm:w-36 sm:h-72 flex items-center justify-end pr-0 mr-[-1px]">
-          <svg className="w-56 h-56 sm:w-72 sm:h-72 text-[#ffd754] absolute right-0" viewBox="0 0 100 100" fill="none">
+        <div className="relative w-36 h-72 sm:w-48 sm:h-96 flex items-center justify-end pr-0 mr-[-1px]">
+          <svg className="w-72 h-72 sm:w-96 sm:h-96 text-[#ffd754] absolute right-0" viewBox="0 0 100 100" fill="none">
             <defs>
               <clipPath id="leftGateClip">
                 <rect x="0" y="0" width="50" height="100" />
@@ -133,8 +133,8 @@ export default function IntroGate({
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[400px] h-[400px] bg-[#d4af37]/10 rounded-full blur-[100px] pointer-events-none" />
         
         {/* Right Half of Majestic Golden Shield */}
-        <div className="relative w-28 h-56 sm:w-36 sm:h-72 flex items-center justify-start pl-0 ml-[-1px]">
-          <svg className="w-56 h-56 sm:w-72 sm:h-72 text-[#ffd754] absolute left-0" viewBox="0 0 100 100" fill="none">
+        <div className="relative w-36 h-72 sm:w-48 sm:h-96 flex items-center justify-start pl-0 ml-[-1px]">
+          <svg className="w-72 h-72 sm:w-96 sm:h-96 text-[#ffd754] absolute left-0" viewBox="0 0 100 100" fill="none">
             <defs>
               <clipPath id="rightGateClip">
                 <rect x="50" y="0" width="50" height="100" />
@@ -214,73 +214,20 @@ export default function IntroGate({
           </div>
         </motion.div>
 
-        {/* CENTER CONTENT */}
+        {/* CENTER CONTENT: PROMINENT DRAWN SHIELD IN HERO CENTER */}
         <div className="max-w-3xl mx-auto w-full my-auto flex flex-col items-center text-center px-4">
           
-          {/* Space allocated for the drawing shield */}
-          <div className="h-28 sm:h-36" />
-
-          {/* BRAND TITLE & MISSION */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="space-y-2 mb-6"
-          >
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 text-[10px] font-mono text-[#ffd754] uppercase tracking-widest shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-              <Sparkles className="w-3 h-3 text-[#ffd754]" /> Constitutional Defense & Public Literacy
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif text-white font-normal tracking-wide drop-shadow-md">
-              CIVIC <span className="text-[#ffd754] font-semibold italic">SHIELD</span>
-            </h1>
-
-            <p className="text-gray-200 text-xs sm:text-sm md:text-base max-w-xl mx-auto font-sans leading-relaxed">
-              Bridging the gap between citizens and legal authority. Eliminating fear through certified statutory literacy and procedural empowerment.
-            </p>
-          </motion.div>
-
-          {/* MEASURABLE SUCCESS TICKER CARDS */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-            className="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-xl mb-7"
-          >
-            <div className="p-3 sm:p-4 rounded-sm bg-[#001233]/90 border border-[#d4af37]/30 shadow-xl backdrop-blur-sm text-center">
-              <div className="text-xl sm:text-2xl font-serif font-bold text-white">
-                {visitorCount.toLocaleString()}<span className="text-[#ffd754] text-base">+</span>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-mono text-gray-300 uppercase tracking-wider mt-0.5">
-                Citizens Visited
-              </div>
-            </div>
-
-            <div className="p-3 sm:p-4 rounded-sm bg-[#001233]/90 border border-[#d4af37]/30 shadow-xl backdrop-blur-sm text-center">
-              <div className="text-xl sm:text-2xl font-serif font-bold text-[#ffd754]">
-                {subscriberCount.toLocaleString()}<span className="text-white text-base">+</span>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-mono text-gray-300 uppercase tracking-wider mt-0.5">
-                Advocates Joined
-              </div>
-            </div>
-
-            <div className="p-3 sm:p-4 rounded-sm bg-[#001233]/90 border border-[#d4af37]/30 shadow-xl backdrop-blur-sm text-center">
-              <div className="text-xl sm:text-2xl font-serif font-bold text-white">
-                100%
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-mono text-gray-300 uppercase tracking-wider mt-0.5">
-                Free Public Aid
-              </div>
-            </div>
-          </motion.div>
+          {/* Spatial frame for the large central drawn shield */}
+          <div className="h-44 sm:h-56 flex items-center justify-center relative">
+            <div className="w-48 h-48 sm:w-60 sm:h-60 rounded-full bg-[#ffd754]/5 blur-3xl absolute pointer-events-none" />
+          </div>
 
           {/* ACTION BUTTON: ENTER CIVIC SHIELD */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.9 }}
-            className="flex flex-col sm:flex-row items-center gap-4"
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="flex flex-col sm:flex-row items-center gap-4 mt-2"
           >
             <button
               onClick={() => handleEnterClick()}
@@ -294,33 +241,83 @@ export default function IntroGate({
 
         </div>
 
-        {/* BOTTOM SYNCHRONIZATION BAR */}
+        {/* BOTTOM SECTION: SHIELD TITLE, REFINED METRICS & SYNCHRONIZATION BAR */}
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-gray-400 pt-4 border-t border-[#d4af37]/20"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="w-full max-w-5xl mx-auto flex flex-col gap-4 pt-4 border-t border-[#d4af37]/20"
         >
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <span className="text-[10px] text-[#ffd754] uppercase tracking-wider whitespace-nowrap">
-              Synchronizing Vault:
-            </span>
-            <div className="w-full sm:w-48 bg-[#001233] h-2 rounded-full overflow-hidden border border-[#d4af37]/30 p-0.5">
-              <div 
-                className="h-full bg-[#ffd754] rounded-full transition-all duration-100 ease-linear shadow-[0_0_8px_#ffd754]"
-                style={{ width: `${progress}%` }}
-              />
+          {/* Bottom Title, Tagline & Metrics Row */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div>
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                <span className="text-xl sm:text-2xl font-serif text-white tracking-wide">
+                  CIVIC <span className="text-[#ffd754] font-semibold italic">SHIELD</span>
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 text-[9px] font-mono text-[#ffd754] uppercase tracking-wider">
+                  Constitutional Defense
+                </span>
+              </div>
+              <p className="text-gray-300 text-xs font-sans max-w-md">
+                Certified statutory literacy & procedural empowerment for every citizen.
+              </p>
             </div>
-            <span className="text-[10px] text-gray-400 font-mono">{progress}%</span>
+
+            {/* Compact Metric Badges */}
+            <div className="flex items-center gap-3">
+              <div className="px-3 py-1.5 rounded-sm bg-[#001233]/90 border border-[#d4af37]/30 text-center">
+                <div className="text-sm font-serif font-bold text-white leading-tight">
+                  {visitorCount.toLocaleString()}<span className="text-[#ffd754]">+</span>
+                </div>
+                <div className="text-[8px] font-mono text-gray-400 uppercase tracking-wider">
+                  Citizens Visited
+                </div>
+              </div>
+
+              <div className="px-3 py-1.5 rounded-sm bg-[#001233]/90 border border-[#d4af37]/30 text-center">
+                <div className="text-sm font-serif font-bold text-[#ffd754] leading-tight">
+                  {subscriberCount.toLocaleString()}<span className="text-white">+</span>
+                </div>
+                <div className="text-[8px] font-mono text-gray-400 uppercase tracking-wider">
+                  Advocates
+                </div>
+              </div>
+
+              <div className="px-3 py-1.5 rounded-sm bg-[#001233]/90 border border-[#d4af37]/30 text-center">
+                <div className="text-sm font-serif font-bold text-emerald-400 leading-tight">
+                  100% Free
+                </div>
+                <div className="text-[8px] font-mono text-gray-400 uppercase tracking-wider">
+                  Public Aid
+                </div>
+              </div>
+            </div>
           </div>
 
-          <button
-            onClick={() => handleEnterClick()}
-            disabled={isOpening}
-            className="text-[10px] text-gray-300 hover:text-[#ffd754] underline cursor-pointer uppercase tracking-widest transition-colors"
-          >
-            Explore Immediately →
-          </button>
+          {/* Synchronization Bar & Quick Explore */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-gray-400 pt-2 border-t border-[#d4af37]/10">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <span className="text-[10px] text-[#ffd754] uppercase tracking-wider whitespace-nowrap">
+                Synchronizing Vault:
+              </span>
+              <div className="w-full sm:w-44 bg-[#001233] h-1.5 rounded-full overflow-hidden border border-[#d4af37]/30">
+                <div 
+                  className="h-full bg-[#ffd754] rounded-full transition-all duration-100 ease-linear shadow-[0_0_8px_#ffd754]"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-gray-400 font-mono">{progress}%</span>
+            </div>
+
+            <button
+              onClick={() => handleEnterClick()}
+              disabled={isOpening}
+              className="text-[10px] text-gray-300 hover:text-[#ffd754] underline cursor-pointer uppercase tracking-widest transition-colors"
+            >
+              Explore Immediately →
+            </button>
+          </div>
         </motion.div>
 
       </motion.div>
