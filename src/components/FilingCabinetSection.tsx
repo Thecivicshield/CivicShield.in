@@ -83,7 +83,8 @@ export default function FilingCabinetSection({
   const currentDetails = getTabDetails(activeTab);
 
   return (
-    <div id="filing-cabinet-container" className="max-w-6xl mx-auto px-3 sm:px-6 my-12 relative z-20">
+    <div id="cabinet-stage" className="scroll-mt-24">
+      <div id="filing-cabinet-container" className="max-w-6xl mx-auto px-3 sm:px-6 my-12 relative z-20">
       
       {/* Central Records Office Header */}
       <div className="text-center mb-8">
@@ -117,18 +118,6 @@ export default function FilingCabinetSection({
               {/* Metallic gold shimmer wave */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 animate-[shimmerSweep_3s_infinite_ease-in-out] pointer-events-none" />
 
-              {/* Close Button Top Right */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setGoldCardPopup(null);
-                }}
-                className="absolute top-4 right-4 px-2.5 py-1 rounded bg-[#1a1202]/15 hover:bg-[#1a1202]/30 text-[#1a1202] font-mono text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                title="Dismiss Card"
-              >
-                Dismiss
-              </button>
-
               {/* Gold Card Header */}
               <div className="flex items-center gap-2 mb-3">
                 <div className="px-2.5 py-1 rounded bg-[#1a1202] text-[#ffd978] text-[10px] font-mono font-bold tracking-widest uppercase shadow-sm">
@@ -148,15 +137,11 @@ export default function FilingCabinetSection({
                 {goldCardPopup.sub}
               </p>
 
-              {/* Stamp & Dismiss Helper */}
+              {/* Stamp */}
               <div className="flex items-center justify-between pt-4 border-t border-[#8f6a1d]/30 text-[11px] font-mono font-semibold text-[#3b2907]">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-700 animate-ping" />
                   <span>★ {goldCardPopup.stamp}</span>
-                </div>
-                <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-[#1a1202] bg-white/40 px-2.5 py-1 rounded-full border border-white/60">
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Click card to dismiss</span>
                 </div>
               </div>
 
@@ -393,6 +378,7 @@ export default function FilingCabinetSection({
         </div>
 
       </div>
+    </div>
     </div>
   );
 }

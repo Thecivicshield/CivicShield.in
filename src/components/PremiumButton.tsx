@@ -129,7 +129,10 @@ export default function PremiumButton({
         className={`${btnClass} ripple-element ${className}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onClick={(e: any) => handleTriggerRipple(e)}
+        onClick={(e: any) => {
+          handleTriggerRipple(e);
+          if (onClick) onClick(e);
+        }}
         style={{
           x: prefersReduced ? 0 : springX,
           y: prefersReduced ? 0 : springY,

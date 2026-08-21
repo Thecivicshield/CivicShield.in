@@ -914,10 +914,16 @@ export default function App() {
                     <PremiumButton 
                       href="#cabinet-stage" 
                       variant="gold"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e?.preventDefault?.();
                         setActiveFolderTab("vault");
-                        const el = document.getElementById("cabinet-stage");
-                        if (el) el.scrollIntoView({ behavior: "smooth" });
+                        window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
+                          detail: { targetId: "evidence", label: "Browse Vault & Rights" }
+                        }));
+                        setTimeout(() => {
+                          const el = document.getElementById("cabinet-stage") || document.getElementById("evidence");
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 50);
                       }}
                     >
                       Browse Vault & Rights <ArrowUpRight className="w-4 h-4 ml-1 shrink-0" />
@@ -925,10 +931,16 @@ export default function App() {
                     <PremiumButton 
                       href="#cabinet-stage" 
                       variant="outline"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e?.preventDefault?.();
                         setActiveFolderTab("dispatch");
-                        const el = document.getElementById("cabinet-stage");
-                        if (el) el.scrollIntoView({ behavior: "smooth" });
+                        window.dispatchEvent(new CustomEvent("trigger-cabinet-nav", {
+                          detail: { targetId: "blog", label: "Recent Dispatches" }
+                        }));
+                        setTimeout(() => {
+                          const el = document.getElementById("cabinet-stage") || document.getElementById("blog");
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 50);
                       }}
                     >
                       Recent Dispatches

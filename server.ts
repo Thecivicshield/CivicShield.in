@@ -194,25 +194,24 @@ async function syncWithFirestore() {
 }
 syncWithFirestore();
 
-// Initialize Gemini Client
-let aiClient: GoogleGenAI | null = null;
-const apiKey = process.env.GEMINI_API_KEY;
-if (apiKey && apiKey.trim().length > 0 && !apiKey.startsWith("AQ.Ab8RN6I7vItO")) {
-  try {
-    aiClient = new GoogleGenAI({
-      apiKey: apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
+// Dynamic Gemini Client getter (supports dynamic or runtime environment keys)
+function getGeminiClient(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (apiKey && apiKey.trim().length > 0) {
+    try {
+      return new GoogleGenAI({
+        apiKey: apiKey.trim(),
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          },
         },
-      },
-    });
-    console.log("✓ Google GenAI client successfully connected and initialized with active key!");
-  } catch (err) {
-    console.error("Error initializing Google GenAI client:", err);
+      });
+    } catch (err) {
+      console.error("Error creating Google GenAI client:", err);
+    }
   }
-} else {
-  console.warn("GEMINI_API_KEY is not set or placeholder. Operating in high-precision autonomous legal advisor mode.");
+  return null;
 }
 
 // Server static files under /uploads
@@ -895,7 +894,138 @@ Civic Shield Alert System`;
   }
 }
 
-// Submit an anonymous question (with OPTIONAL real-time smart answer from Gemini!)
+// AI Legal Advice Engine with Google Search Grounding & Multi-Tier Fallback
+async function generateAiLegalAnswer(text: string): Promise<{ answer: string; repliedBy: string }> {
+  const campaignKnowledge = `
+You are the Official AI Legal Advocate & Constitutional Advisor of "Civic Shield", an organization dedicated to citizen legal literacy, rights defense, and demystifying statutory procedures under constitutional and statutory law.
+Your mission is to bridge the gap between citizens and legal authority, eliminate fear of procedural encounters, and empower every citizen with actionable, legally verified knowledge.
+Tone: Empathetic, calm, authoritative, legally sound, and step-by-step practical.
+
+Key Statutory Principles & Citations:
+- Constitutional Rights: Article 14 (Equality), Article 19 (Free Speech & Public Recording), Article 20(3) (Right against Self-Incrimination & Digital Device Privacy), Article 21 (Right to Life & Personal Liberty), Article 22 (Arrest Protections & 24hr Magistrate Presentation), Article 32 & 226 (Writs), Article 39A (Free Legal Aid).
+- Procedural & Arrest Safeguards: D.K. Basu Guidelines (1997), CrPC & Bharatiya Nagarik Suraksha Sanhita (BNSS) arrest memorandums, seizure protocols.
+- FIR Rules: Lalita Kumari v. Govt of UP (Mandatory FIR registration for cognizable offenses).
+- Roadside & Motor Vehicles: Motor Vehicles Act 1988 & Rule 139 Central Motor Vehicle Rules (DigiLocker and mParivahan digital documents have 100% statutory validity; officers cannot snatch ignition keys or tow occupied cars).
+- Digital Privacy: Puttaswamy judgment (Phone searches require explicit warrant or formal FIR seizure memo).
+- Transparency: Right to Information (RTI) Act 2005 (Sec 6 filing, 30-day timeline, Sec 19 appeals).
+- Pro-Se Representation: Section 32 Advocates Act 1961 (Party-in-person self-representation in consumer/municipal/civil forums).
+`;
+
+  // Tier 1: Try Gemini with Google Search Grounding
+  const geminiAi = getGeminiClient();
+  if (geminiAi) {
+    try {
+      const response = await geminiAi.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Citizen Question: ${text}`,
+        config: {
+          systemInstruction: `${campaignKnowledge}\nAnswer the citizen's legal inquiry clearly, accurately, and authoritatively. Provide exact statutory sections, practical bulleted steps to protect themselves calmly, and reassure them of their rights. Keep response concise, structured, and practical (around 140-220 words). Use Google Search data where relevant for verified statutory references and current procedures.`,
+          tools: [{ googleSearch: {} }],
+          temperature: 0.4,
+        }
+      });
+
+      if (response.text) {
+        let answerText = response.text.trim();
+        
+        // Extract Google Search Grounding Metadata Sources
+        const groundingMetadata = (response as any).candidates?.[0]?.groundingMetadata;
+        const searchChunks = groundingMetadata?.groundingChunks || [];
+        const validSources: Array<{ title: string; url: string }> = [];
+        
+        for (const chunk of searchChunks) {
+          if (chunk.web?.uri && chunk.web?.title) {
+            if (!validSources.some(s => s.url === chunk.web.uri)) {
+              validSources.push({ title: chunk.web.title, url: chunk.web.uri });
+            }
+          }
+        }
+
+        if (validSources.length > 0) {
+          answerText += `\n\n🔍 **Verified Google Search Grounding Sources:**\n` + 
+            validSources.slice(0, 3).map(s => `• [${s.title}](${s.url})`).join("\n");
+        }
+
+        return {
+          answer: answerText,
+          repliedBy: "AI Legal Advocate (Gemini 2.5 Flash + Search Grounding)"
+        };
+      }
+    } catch (groundingErr: any) {
+      console.warn("Gemini with Search Grounding failed, trying standard Gemini 2.5 Flash:", groundingErr.message || groundingErr);
+      try {
+        const standardResponse = await geminiAi.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: `Citizen Question: ${text}`,
+          config: {
+            systemInstruction: `${campaignKnowledge}\nAnswer the citizen's legal inquiry clearly, accurately, and authoritatively with statutory sections and step-by-step guidance.`,
+            temperature: 0.4,
+          }
+        });
+        if (standardResponse.text) {
+          return {
+            answer: standardResponse.text.trim(),
+            repliedBy: "AI Legal Advocate (Gemini 2.5 Flash Live)"
+          };
+        }
+      } catch (gemFallbackErr: any) {
+        console.warn("Gemini standard call failed, trying secondary models:", gemFallbackErr.message || gemFallbackErr);
+      }
+    }
+  }
+
+  // Tier 2: Secondary Cloud AI Fallback (OpenAI if available via environment variable)
+  const openAiKey = process.env.OPENAI_API_KEY;
+  if (openAiKey && openAiKey.startsWith("sk-")) {
+    try {
+      const openAiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openAiKey.trim()}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: campaignKnowledge },
+            { role: "user", content: `Citizen Question: ${text}\nProvide clear, actionable legal advice with statutory citations and practical step-by-step guidance.` }
+          ],
+          max_tokens: 600,
+          temperature: 0.5
+        })
+      });
+
+      if (openAiRes.ok) {
+        const data = await openAiRes.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content && content.trim()) {
+          return {
+            answer: content.trim(),
+            repliedBy: "AI Legal Advocate (OpenAI GPT-4o)"
+          };
+        }
+      }
+    } catch (openAiError: any) {
+      console.warn("OpenAI fallback failed:", openAiError.message || openAiError);
+    }
+  }
+
+  // Tier 3: Autonomous Legal Knowledge Engine Fallback
+  const autoMatch = getAutonomousLegalResponse(text);
+  if (autoMatch.answered && autoMatch.answer) {
+    return {
+      answer: autoMatch.answer,
+      repliedBy: autoMatch.repliedBy || "AI Legal Advocate (Civic Shield Engine)"
+    };
+  }
+
+  return {
+    answer: "Greetings! Under Civic Shield protocols, you have inviolable rights to fair administrative procedure, legal representation, and dignity. Always ask: 'Under what specific legal provision is this directive issued?' and document all interactions. Consult the Evidence Room for template packs.",
+    repliedBy: "AI Legal Advocate (Civic Shield Desk)"
+  };
+}
+
+// Submit an anonymous question (with real-time smart answer from Gemini Search Grounding / Cloud AI / Legal Engine)
 app.post("/api/questions", async (req, res) => {
   try {
     const { text, timestamp } = req.body;
@@ -911,78 +1041,13 @@ app.post("/api/questions", async (req, res) => {
       isPublic: true
     };
     
-    // If Gemini client is activated, generate a smart assistant response in real-time!
-    let geminiServiceError = null;
-    if (aiClient) {
-      const campaignKnowledge = `
-        You are the Official AI Legal Advocate & Constitutional Advisor of "Civic Shield", an organization dedicated to legal literacy, citizen rights defense, and demystifying statutory procedures under Indian and constitutional law.
-        Goals: Bridge the gap between citizens and legal authority, eliminate fear of procedural stops, and empower every citizen with actionable, legally verified knowledge.
-        Tone: Empathetic, calm, authoritative, legally sound, and step-by-step practical.
-        Key Laws & Precedents to cite when relevant:
-        - Constitution of India (Articles 14, 19, 20, 21, 22, 32, 226, 39A)
-        - D.K. Basu Guidelines (1997) & CrPC / BNSS arrest and search protocols
-        - Lalita Kumari v. Govt of UP (Mandatory FIR registration for cognizable offenses)
-        - Motor Vehicles Act 1988 (Amended) & Rule 139 CMVR (DigiLocker / mParivahan validity)
-        - Right to Information Act 2005 (Sec 6, 7, 19 - 30-day mandate & FAA appeals)
-        - Consumer Protection Act 2019 & e-Daakhil filing
-        - NALSA / DLSA free legal aid under Article 39A
-        - POSH Act 2013 & Protection of Women from Domestic Violence Act 2005
-      `;
-
-      // Try primary model (gemini-2.5-flash)
-      try {
-        const response = await aiClient.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: `Citizen Question: ${text}`,
-          config: {
-            systemInstruction: `${campaignKnowledge}\nAnswer the citizen's legal inquiry clearly, accurately, and authoritatively. Provide exact statutory sections, practical bulleted steps to protect themselves calmly, and reassure them of their rights. Keep response concise (around 120-180 words).`,
-            temperature: 0.5
-          }
-        });
-        
-        if (response.text) {
-          newQuestion.answered = true;
-          newQuestion.answer = response.text.trim();
-          newQuestion.repliedBy = "AI Legal Advocate (Gemini Live)";
-        }
-      } catch (gemError: any) {
-        console.warn("Primary model 'gemini-2.5-flash' experienced an issue. Attempting fallback...", gemError.message || gemError);
-        geminiServiceError = gemError;
-        
-        try {
-          const fallbackResponse = await aiClient.models.generateContent({
-            model: "gemini-2.0-flash",
-            contents: `Citizen Question: ${text}`,
-            config: {
-              systemInstruction: `${campaignKnowledge}\nAnswer the citizen's legal inquiry clearly and accurately. Provide statutory sections and practical steps.`,
-              temperature: 0.5
-            }
-          });
-          if (fallbackResponse.text) {
-            newQuestion.answered = true;
-            newQuestion.answer = fallbackResponse.text.trim();
-            newQuestion.repliedBy = "AI Legal Advocate (Gemini)";
-            geminiServiceError = null;
-          }
-        } catch (fallbackError: any) {
-          console.error("Gemini generation failed. Falling back to autonomous legal engine:", fallbackError.message || fallbackError);
-          geminiServiceError = fallbackError;
-        }
-      }
-    }
-
-    // High-precision Autonomous Legal Knowledge Engine Fallback (guarantees an exact, helpful answer)
-    if (!newQuestion.answered) {
-      const offlineMatch = getAutonomousLegalResponse(text);
-      if (offlineMatch.answered && offlineMatch.answer) {
-        newQuestion.answered = true;
-        newQuestion.answer = offlineMatch.answer;
-        newQuestion.repliedBy = offlineMatch.repliedBy || "AI Legal Advocate (Civic Shield)";
-      }
-    }
-
-    // Ultimate fallback if neither Gemini is successfully active nor keyword matched
-    if (!newQuestion.answered) {
+    // Generate authoritative legal answer in real time using Gemini AI with Google Search Grounding
+    const aiResult = await generateAiLegalAnswer(text);
+    if (aiResult && aiResult.answer) {
+      newQuestion.answered = true;
+      newQuestion.answer = aiResult.answer;
+      newQuestion.repliedBy = aiResult.repliedBy;
+    } else {
       newQuestion.answer = "Thank you for reaching out to Civic Shield! We have received your query. A campaign legal advocate has been notified of your question, and we will review and reply here shortly.";
       newQuestion.answered = false;
       newQuestion.repliedBy = "Campaign Legal Desk";
@@ -997,6 +1062,7 @@ app.post("/api/questions", async (req, res) => {
     saveData(campaignData);
     res.json(newQuestion);
   } catch (e: any) {
+    console.error("Error submitting question:", e);
     res.status(500).json({ error: e.message });
   }
 });

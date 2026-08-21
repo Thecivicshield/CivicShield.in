@@ -50,6 +50,73 @@ const SOVEREIGN_RESOURCES = [
   }
 ];
 
+function renderBoldText(text: string, keyPrefix: string) {
+  const boldRegex = /\*\*(.*?)\*\*/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = boldRegex.exec(text)) !== null) {
+    const [fullMatch, boldContent] = match;
+    const pre = text.substring(lastIndex, match.index);
+    if (pre) parts.push(pre);
+    parts.push(<strong key={`${keyPrefix}-b-${match.index}`} className="text-[#ffd754] font-semibold">{boldContent}</strong>);
+    lastIndex = match.index + fullMatch.length;
+  }
+  const post = text.substring(lastIndex);
+  if (post) parts.push(post);
+  return parts.length > 0 ? <React.Fragment key={keyPrefix}>{parts}</React.Fragment> : text;
+}
+
+function renderFormattedMessage(text: string) {
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-1.5">
+      {lines.map((line, lIdx) => {
+        if (!line.trim()) {
+          return <div key={lIdx} className="h-1" />;
+        }
+        const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+        let lastIndex = 0;
+        const lineParts: React.ReactNode[] = [];
+        let match;
+
+        while ((match = linkRegex.exec(line)) !== null) {
+          const [fullMatch, linkText, linkUrl] = match;
+          const preText = line.substring(lastIndex, match.index);
+          if (preText) {
+            lineParts.push(renderBoldText(preText, `pre-${lIdx}-${lastIndex}`));
+          }
+          lineParts.push(
+            <a 
+              key={`link-${lIdx}-${match.index}`}
+              href={linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#ffd754] underline hover:text-white inline-flex items-center gap-1 font-medium transition-colors"
+            >
+              {linkText}
+            </a>
+          );
+          lastIndex = match.index + fullMatch.length;
+        }
+
+        const remainingText = line.substring(lastIndex);
+        if (remainingText) {
+          lineParts.push(renderBoldText(remainingText, `post-${lIdx}-${lastIndex}`));
+        }
+
+        const isBullet = line.trim().startsWith('•') || line.trim().startsWith('-') || /^\d+\./.test(line.trim());
+        return (
+          <div key={lIdx} className={isBullet ? 'pl-2 text-gray-200' : 'text-gray-100'}>
+            {lineParts.length > 0 ? lineParts : renderBoldText(line, `line-${lIdx}`)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AnonymousChat({ questions, onNewQuestion, evidence, onAddEvidence }: AnonymousChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'directory' | 'resources'>('chat');
@@ -435,7 +502,7 @@ export default function AnonymousChat({ questions, onNewQuestion, evidence, onAd
                                 <span>Civic Legal Advocate</span>
                               </div>
                             )}
-                            {msg.text}
+                            {msg.sender === 'bot' ? renderFormattedMessage(msg.text) : msg.text}
                           </div>
                           <span className="text-[8px] text-gray-500 mt-1 px-1 font-mono tracking-wider">{msg.time}</span>
                         </motion.div>
